@@ -1,0 +1,113 @@
+html {
+  width: 357px;
+  height: 600px;
+}
+body {
+  background-color: #F6F6F8;
+  background-image: url("./cloud.gif");
+  color: black;
+  font-family: Arial;
+  text-align: center;
+  width: 357px;
+  height: 600px;
+}
+
+.Rui_pass {
+  color: white;
+  padding-top: 200px;
+}
+
+.Rui_newPass {
+  padding-top: 100px;
+}
+
+.Rui_reg {
+  color: white;
+  padding-top: 100px;
+}
+
+.Rui_logo {
+  float: left;
+}
+
+.Rui_menu {
+  float: right;
+}
+
+.Rui_relative {
+  width: 327px;
+  height: 300px;
+  position: relative; 
+}
+
+.Rui_address {
+  left:10px; 
+  top:20px;
+  width: 357px;
+  height: 100px;
+  position: absolute; 
+}
+
+.Rui_address_div {
+  padding-top: 20px;
+  width: 327px;
+  height: 200px;
+  border-radius:5px;
+  zIndex: 10;
+  position: absolute; 
+  background-color: #F6F6F8;
+  opacity:0.5
+}
+
+.Rui_balance {
+  top:100px;
+  width: 327px;
+  height: 160px;
+  position: absolute; 
+  margin-top: 5px;
+  padding-top: 5px;
+  border: 1px solid white;
+  border-width: thin;
+  border-radius:5px;
+}
+
+.Rui_balance_num {
+  font-size: 30px;
+  color: white;
+}
+
+.Rui_address_page {
+  padding-top: 20px;
+  width: 320px;
+  height: 200px;
+}
+
+.Rui_transfer {
+  color: white;
+  padding-top: 10px;
+  width: 330px;
+  height: 240px
+}
+
+.Rui_input {
+  margin-left: 15px;
+  width: 300px;
+  border: 1px solid #4dfbff;
+  background-color: rgba(0, 0, 0, 0)
+}
+
+.Rui_upload {
+  top:120px;
+  width: 357px;
+  height: 300px;
+  position: absolute; 
+}
+
+.Rui_up_pass {
+  top:30px;
+  width: 357px;
+  height: 100px;
+  position: absolute; 
+}
+
+
