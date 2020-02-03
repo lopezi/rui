@@ -15,7 +15,15 @@ class PassPage extends React.Component {
 
   constructor(props) {
     super(props)
-    this.state = { oldP: '', p1: '', p2: '', showModal1: false, showModal2: false, showModal3: false, showModal4: false, showModal5: false}
+    this.state = {  oldP: '', 
+                    p1: '', 
+                    p2: '', 
+                    showModal1: false, 
+                    showModal2: false, 
+                    showModal3: false, 
+                    showModal4: false, 
+                    showModal5: false
+                  }
     this.handleInputChange = this.handleInputChange.bind(this)
     this.newPass = this.newPass.bind(this)
     this.changeStore = this.changeStore.bind(this)
@@ -34,13 +42,10 @@ class PassPage extends React.Component {
     const addr =["address1","address2","address3","address4","address5"]
     for ( const i of addr) {
       await chrome.storage.local.get([i], function(result) {
-        // if(Object.entries(result[addr]).length === 0 && result[addr].constructor === Object){
           if (result.hasOwnProperty(i) === true) {
-            console.log("i want this result:", result[i])
             chrome.storage.local.get([result[i] + "_keyfile"], function(res) {
               passworder.decrypt(this.state.oldP, res[result[i] + "_keyfile"])
                 .then(function(blob) {
-                   console.log("i want this blob: ", blob)
                    passworder.encrypt(this.state.p1, blob)
                     .then(function(blob2) {
                       chrome.storage.local.set({[result[i] + "_keyfile"]: blob2}, function() {})
@@ -92,7 +97,6 @@ class PassPage extends React.Component {
     }.bind(this))
   }    
 
-
   render() {
 
     return (
@@ -118,7 +122,6 @@ class PassPage extends React.Component {
             <Button variant="outline-light" size="lg" onClick={this.newPass} ><FormattedMessage id='confirm' /></Button>
           </form>                 
         </div>
-
 
         <Modal size="sm" show = {this.state.showModal1} onHide={()=>this.setState({showModal1: false})}>
           <Modal.Body>

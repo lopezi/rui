@@ -30,13 +30,13 @@ var did =false
 
 
 const chooseLocale = () => {
-    switch(navigator.language.split('_')[0]){
+    switch(navigator.language.split('-')[0]){
         case 'en':
             return EN
         case 'zh':
             return CN
         default:
-            return EN
+            return CN
     }
 }
 
@@ -49,7 +49,6 @@ class App extends Component {
       }
 		}) 
   }
-
 
   render(){
     return(
@@ -68,8 +67,8 @@ class App extends Component {
     )
   }
 }
+
 ReactDom.render(<BrowserRouter><IntlProvider locale={navigator.language} messages={chooseLocale()}><App /></IntlProvider></BrowserRouter> , document.getElementById("root"))
-// ReactDom.render(<BrowserRouter><IntlProvider locale='en' messages={CN}><App /></IntlProvider></BrowserRouter> , document.getElementById("root"))
 
 
 

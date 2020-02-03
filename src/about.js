@@ -2,10 +2,7 @@
 
 import React from 'react'
 import { withRouter } from 'react-router-dom'
-import Row from 'react-bootstrap/Row'
-import Col from 'react-bootstrap/Col'
 import Header from './header'
-import {FormattedMessage} from 'react-intl'
 
 class AboutPage extends React.Component {
 
@@ -15,14 +12,6 @@ class AboutPage extends React.Component {
     this.handleInputChange = this.handleInputChange.bind(this)
     this.reg = this.reg.bind(this)
   }
-
-  handleInputChange(event) {
-     
-  }
-
-  reg(event) {
-
-}
 
   render() {
     return (

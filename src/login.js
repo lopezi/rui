@@ -50,12 +50,9 @@ class LoginPage extends React.Component {
     await chrome.storage.local.get(['userPass'], function(result) {
       bcrypt.compare(this.state.pass, result.userPass, function(err, res) {
         if (res === true){
-          // bcrypt.genSalt(10, function(err, salt) {
-          //   bcrypt.hash(this.state.pass, salt, function(err, hash) {
-              // basicKey.hash= hash
-            Auth.login()
-            basicKey.hash=this.state.pass
-            this.props.history.push('/transfer')   
+          Auth.login()
+          basicKey.hash=this.state.pass
+          this.props.history.push('/transfer')   
         }  else{
           // alert("密码错")
           this.setState({showModal1: true})
@@ -88,14 +85,14 @@ class LoginPage extends React.Component {
         </div>
 
         <Modal size="sm" show = {this.state.showModal1} onHide={()=>this.setState({showModal1: false})}>
-        <Modal.Body>
-          <FormattedMessage id='wrong_pass' />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={()=>this.setState({showModal1: false})}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
+          <Modal.Body>
+            <FormattedMessage id='wrong_pass' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal1: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
       </Modal>
       </div>
     )

@@ -13,7 +13,12 @@ class RegPage extends React.Component {
 
   constructor(props) {
     super(props)
-    this.state = { pass1: '', pass2: '', showModal1: false, showModal2: false, showModal3: false}
+    this.state = {  pass1: '', 
+                    pass2: '', 
+                    showModal1: false, 
+                    showModal2: false, 
+                    showModal3: false
+                  }
     this.handleInputChange = this.handleInputChange.bind(this)
     this.reg = this.reg.bind(this)
   }
@@ -43,9 +48,6 @@ class RegPage extends React.Component {
         chrome.storage.local.set({'userPass': hash}, function() {return})
         this.props.history.push('/upload')      
       }else{
-        chrome.storage.local.get(['userPass'], function(result) {
-          console.log('Register local.get userPass： ' + result.userPass)
-        })
         // alert("再次输入的密码不一致")   
         this.setState({showModal1: true})
         return
@@ -79,35 +81,35 @@ class RegPage extends React.Component {
         </div>
 
         <Modal size="sm" show = {this.state.showModal1} onHide={()=>this.setState({showModal1: false})}>
-        <Modal.Body>
-          <FormattedMessage id='inconsistency' />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={()=>this.setState({showModal1: false})}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Body>
+            <FormattedMessage id='inconsistency' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal1: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
         <Modal size="sm" show = {this.state.showModal2} onHide={()=>this.setState({showModal2: false})}>
-        <Modal.Body>
-          <FormattedMessage id='more_than_5' />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={()=>this.setState({showModal2: false})}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Body>
+            <FormattedMessage id='more_than_5' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal2: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
         <Modal size="sm" show = {this.state.showModal3} onHide={()=>this.setState({showModal3: false})}>
-        <Modal.Body>
-          <FormattedMessage id='only_alphanumeric' />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={()=>this.setState({showModal3: false})}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Body>
+            <FormattedMessage id='only_alphanumeric' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal3: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     )
   }

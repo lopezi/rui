@@ -34,8 +34,7 @@ class UploadPage extends React.Component {
     const addr =["address1","address2","address3","address4","address5"]
     for ( const i of addr) {
       await chrome.storage.local.get([i], function(result) {
-        // if(Object.entries(result[addr]).length === 0 && result[addr].constructor === Object){
-        console.log(result.hasOwnProperty(i),i)
+        // console.log(result.hasOwnProperty(i),i)
         if (result.hasOwnProperty(i) === false) {
           temp_i= i
           return
@@ -63,20 +62,14 @@ class UploadPage extends React.Component {
       this.setState({showModal1: true})
       return
     }
-    console.log(temp.getAddress().toString('hex'))
+    // console.log(temp.getAddress().toString('hex'))
     const c_addr = temp_i
-    // const c_key = temp_i + "_keyfile"
-    console.log("upload_password: ", basicKey.hash)
     passworder.encrypt(basicKey.hash, this.state.fileContents)
     .then(function(blob) {
-      // chrome.storage.local.set({[c_key]: blob}, function() {})
-      // chrome.storage.local.set({[temp.getAddress().toString('hex') + "_keyfile"]: blob}, function() {})
       chrome.storage.local.set({[ getAddrFromEth(temp.getAddress().toString('hex')) + "_keyfile"]: blob}, function() {})
       passworder.decrypt(basicKey.hash, blob)
-      .then(function(res) {console.log("ressssss: ",res)})
     })
 
-    // chrome.storage.local.set({[c_addr]: temp.getAddress().toString('hex')}, function() {})
     chrome.storage.local.set({[c_addr]: getAddrFromEth(temp.getAddress().toString('hex'))}, function() {})
     // alert("导入成功Import Succeed")
     this.setState({showModal2: true})
@@ -93,51 +86,46 @@ class UploadPage extends React.Component {
         <Header />
         <div className="Rui_upload" > 
           <label>
-              <FormattedMessage id='import' />
+            <FormattedMessage id='import' />
           </label>
           <FileInput
             readAs='binary'
             onLoad= {this.onLoad.bind(this)}
           />    
           <div className="Rui_upload" > 
-            { /* <form onSubmit={this.upload}> */}
             <form>
               <label>
                 <FormattedMessage id='key_pass' />
               </label>
               <input type="password" name="pass" value={this.state.pass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
               <p></p>
-              { /* <input type="submit" value="导入Import"  /> */}
               <p></p>
             </form>
             <Button variant="outline-light" size="lg" onClick={this.upload}><FormattedMessage id='import' /></Button>
           </div>
         </div>
 
-            <Modal size="sm" show = {this.state.showModal1} onHide={()=>this.setState({showModal1: false})}>
-        <Modal.Body>
-          <FormattedMessage id='wrong_pass' />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={()=>this.setState({showModal1: false})}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        <Modal size="sm" show = {this.state.showModal1} onHide={()=>this.setState({showModal1: false})}>
+          <Modal.Body>
+            <FormattedMessage id='wrong_pass' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal1: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
-            <Modal size="sm" show = {this.state.showModal2} onHide={()=>this.setState({showModal2: false})}>
-        <Modal.Body>
-          <FormattedMessage id='import_success' />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={()=>this.setState({showModal2: false})}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-
-
+        <Modal size="sm" show = {this.state.showModal2} onHide={()=>this.setState({showModal2: false})}>
+          <Modal.Body>
+            <FormattedMessage id='import_success' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal2: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     )
   }

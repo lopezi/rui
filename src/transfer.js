@@ -21,11 +21,8 @@ const protoSchema = require('../rnode-grpc-gen/js/pbjs_generated.json')
 // Import generated protobuf types (in global scope)
 require('../rnode-grpc-gen/js/DeployServiceV1_pb')
 require('../rnode-grpc-gen/js/ProposeServiceV1_pb')
-// require('../rnode-grpc-gen/js/DeployService_pb')
-// require('../rnode-grpc-gen/js/ProposeService_pb')
 
 const add_5 = ["address1","address2","address3","address4","address5"]
-// const http = `http://173.249.48.71:44401`
 const http = `http://proxy.wenode.io:44401`
 
 const rnode = (rnodeUrl) => {
@@ -38,9 +35,8 @@ const rnode = (rnodeUrl) => {
   } = rnodeDeploy(options)
 
   const { propose } = rnodePropose(options)
-  return { DoDeploy: doDeploy, propose, listenForDataAtName, getBlocks, getBlock};
+  return { DoDeploy: doDeploy, propose, listenForDataAtName, getBlocks, getBlock}
 }
-
 
 const sendDeploy = async (rnodeUrl, code, privateKey) => {
   const { DoDeploy, propose } = rnode(rnodeUrl)
@@ -48,31 +44,21 @@ const sendDeploy = async (rnodeUrl, code, privateKey) => {
     term: code, phlolimit: 100e6, phloprice: 1,
     validafterblocknumber: 1
   }
-  // Sign deploy
   const deploy = signDeploy(privateKey, deployData)
-  // Send deploy
-  console.log("deploy: ",deploy)
-
-
-   const isValidDeploy = verifyDeploy(deploy)
-    console.log("isValidDeploy: ",isValidDeploy)
+  // const isValidDeploy = verifyDeploy(deploy)
   try {
     const { result } = await DoDeploy(deploy)
-    // const  result = await DoDeploy(deploy)
-    console.log("result : ", result)
-    console.log("deploy.sig : ", deploy.sig)
+    // console.log('DoDeploy: ', result)
+
   } catch (error) { return error }
 
-  // Try to propose but don't throw on error
   try {
     const resPropose = await propose()
-    console.log('PROPOSE', resPropose)
+    // console.log('PROPOSE', resPropose)
   } catch (error) { console.log(error) }
 
-  // Deploy response
-  // return [result, deploy]
   const data = await getDataForDeploy(rnodeUrl, deploy.sig)
-  console.log("data : ", data)
+  console.log('data: ', data)
   return data
 
 }
@@ -83,19 +69,11 @@ const getDataForDeploy = async (rnodeUrl, deployId) => {
     depth: -1,
     name: { unforgeablesList: [{gDeployIdBody: {sig: deployId}}] },
   })
-  // Get data as number
-  // console.log("blockinfoList ", blockinfoList)
-
+console.log("blockinfoList.length: ", blockinfoList.length)
   return blockinfoList.length &&
-    blockinfoList[0].postblockdataList[0].exprsList[0].gInt
+    blockinfoList[0].postblockdataList[0].exprsList[0].gInt ||
+    blockinfoList[0].postblockdataList[0].exprsList[0].gString
 }
-
-// const bytesFromHex = hexStr => {
-//   const byte2hex = ([arr, bhi], x) =>
-//     bhi ? [[...arr, parseInt(`${bhi}${x}`, 16)]] : [arr, x]
-//   const [resArr] = Array.from(hexStr).reduce(byte2hex, [[]])
-//   return Uint8Array.from(resArr)
-// }
 
 class Transfer extends React.Component {
 
@@ -140,20 +118,20 @@ class Transfer extends React.Component {
   }
 
   async componentDidMount() { 
-       add_5.map( i => {
-       return chrome.storage.local.get([i], function(result) {
-           if (result.hasOwnProperty(i) === true) {
-              var tempC = result[i].substring(0,8) +"........"+ result[i].substring(result[i].length-7,result[i].length+1)
-              chrome.storage.local.get([i]+"_keyfile", function(res) {
-                if (this.state.revAddress === null){
-                  this.setState({revAddress: result[i], revAddress2: tempC, keyfile: res})
-                }
-                this.setState({
-                 addrList:[...this.state.addrList, {v:result[i], s:tempC, k: res }]
-                })
-              }.bind(this))  
-           }
-    }.bind(this))
+    add_5.map( i => {
+      return chrome.storage.local.get([i], function(result) {
+        if (result.hasOwnProperty(i) === true) {
+          var tempC = result[i].substring(0,8) +"........"+ result[i].substring(result[i].length-7,result[i].length+1)
+          chrome.storage.local.get([i]+"_keyfile", function(res) {
+            if (this.state.revAddress === null){
+              this.setState({revAddress: result[i], revAddress2: tempC, keyfile: res})
+            }
+            this.setState({
+              addrList:[...this.state.addrList, {v:result[i], s:tempC, k: res }]
+            })
+          }.bind(this))  
+        }
+      }.bind(this))
     })
   }
 
@@ -161,48 +139,35 @@ class Transfer extends React.Component {
     item ==="check balance" 
     ? this.setState({showModal1: false})
     : this.setState({showModal2: false})
-    //get fileContents by revAddres
-    //decrypt the fileContents with login password 
-      var Wallet = require('ethereumjs-wallet')
-      var passworder = require('browser-passworder')
-      // var password = basicKey.hash
-      const c_key = this.state.revAddress + "_keyfile"
-      var tempP
-      console.log("basicKey.hash: ",basicKey.hash)
-      console.log("c_key: ",c_key)
-
-      chrome.storage.local.get([c_key], function(result) {
-        try {
-          console.log("result[c_key]: ",result[c_key])
-          console.log("basicKey.hash: ",basicKey.hash)
-          passworder.decrypt(basicKey.hash, result[c_key])
-            .then(function(blob) {
-              this.setState({fileContents:  blob }, () => {
-                      console.log("fileContents: ", this.state.fileContents)
-                      console.log("PKpass: ", this.state.PKpass)
+    var Wallet = require('ethereumjs-wallet')
+    var passworder = require('browser-passworder')
+    const c_key = this.state.revAddress + "_keyfile"
+    var tempP
+    chrome.storage.local.get([c_key], function(result) {
+      try {
+        passworder.decrypt(basicKey.hash, result[c_key])
+        .then(function(blob) {
+          this.setState({fileContents:  blob }, () => {
+            try {
+              tempP = Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPrivateKeyString().slice(2) 
+            }
+            catch(err) {
+              // alert("Keystore密码错Wrong Password")
+              this.setState({showModal3: true})
+              return
+            }  
+            this.setState({ sk: tempP}, () => {
               try {
-                tempP = Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPrivateKeyString().slice(2) 
-              }
-              catch(err) {
-                // alert("Keystore密码错Wrong Password")
-                this.setState({showModal3: true})
-                return
-              }  
-              this.setState({ sk: tempP}, () => {
-                console.log("this.state.sk: ", this.state.sk)
-                // console.log("public Key: ", Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPublicKeyString())
-                try {
                 sendDeploy(http, code, this.state.sk).then( (response) => {
-                console.log("check balance response: ",response)
-                // this.setState({balance: response})
-                item ==="check balance" 
-                  ? this.setState({balance: response})
-                  : response === 0 
-                    // ? alert("转账成功Transfer Succeeded") 
-                    ? this.setState({showModal4: true})
-                    // : alert("转账失败Transfer Failed") 
-                    : this.setState({showModal5: true})
-                return response
+                  console.log("Response: ", response)
+                  item ==="check balance" 
+                    ? this.setState({balance: response})
+                    : response === 'dui' 
+                      // ? alert("转账成功Transfer Succeeded") 
+                      ? this.setState({showModal4: true})
+                      // : alert("转账失败Transfer Failed") 
+                      : this.setState({showModal5: true})
+                  return response
                 })
               }
               catch(err) {
@@ -210,54 +175,43 @@ class Transfer extends React.Component {
                 this.setState({showModal6: true})
                 return
               }  
-              })
             })
-          }.bind(this))
-        }  
-        catch(err) {
-          // alert("密码输入有误，操作失败")
-          this.setState({showModal7: true})
-          return
-        }        
-      }.bind(this))
+          })
+        }.bind(this))
+      }  
+      catch(err) {
+        // alert("密码输入有误，操作失败")
+        this.setState({showModal7: true})
+        return
+      }        
+    }.bind(this))
 
   }
 
   async queryBalance() {
-    // this.setState({showModal1: true,
-    //                isChecked: true}, () =>{
-    //                })
-
-    console.log("this.state.revAddress: ", this.state.revAddress)
     const code =`
       new
       rl(\`rho:registry:lookup\`), RevVaultCh,
       vaultCh, balanceCh,
       deployId(\`rho:rchain:deployId\`)
       in {
-      rl!(\`rho:rchain:revVault\`, *RevVaultCh) |
-      for (@(_, RevVault) <- RevVaultCh) {
-        match "${this.state.revAddress}" {
-          revAddress => {
-            @RevVault!("findOrCreate", revAddress, *vaultCh) |
-            for (@(true, vault) <- vaultCh) {
-              @vault!("balance", *balanceCh) |
-              for (@balance <- balanceCh) {
-                deployId!(balance)
+        rl!(\`rho:rchain:revVault\`, *RevVaultCh) |
+        for (@(_, RevVault) <- RevVaultCh) {
+          match "${this.state.revAddress}" {
+            revAddress => {
+              @RevVault!("findOrCreate", revAddress, *vaultCh) |
+              for (@(true, vault) <- vaultCh) {
+                @vault!("balance", *balanceCh) |
+                for (@balance <- balanceCh) {
+                  deployId!(balance)
+                }
               }
             }
           }
         }
       }
-    }
     `
-    // const tempT = await this.handleInputPass(http, code)
-    // console.log("balance: ", tempT)
-    // const [response] = await sendDeploy(http, code, this.state.sk)
-    // console.log("check balance response: ",response)
-console.log("await this.handleInputPass(http, code) ",await this.handleInputPass("check balance", http, code) )
-  // this.setState({ balance: await this.handleInputPass(http, code) }, () => { console.log("this.state.balance:", this.state.balance)})
-
+    await this.handleInputPass("check balance", http, code)
   }
 
   async transfer(event) {
@@ -265,7 +219,7 @@ console.log("await this.handleInputPass(http, code) ",await this.handleInputPass
     const code =`
       new
         rl(\`rho:registry:lookup\`), RevVaultCh,
-      deployId(\`rho:rchain:deployId\`)
+      deployId(\`rho:rchain:deployId\`),stdout(\`rho:io:stdout\`)
       in {
         rl!(\`rho:rchain:revVault\`, *RevVaultCh) |
         for (@(_, RevVault) <- RevVaultCh) {
@@ -277,8 +231,14 @@ console.log("await this.handleInputPass(http, code) ",await this.handleInputPass
                 for (@(true, vault) <- vaultCh; key <- revVaultkeyCh) {
                   new resultCh in {
                     @vault!("transfer", to, amount, *key, *resultCh) |
-                    for (@result <- resultCh) {
-                      deployId!(result)
+                    for (@(result, _ ) <- resultCh) {
+                      if (result == true) {
+                        deployId!("dui")|
+                        stdout!("dui")
+                      } else {
+                        deployId!("cuo")|
+                        stdout!("cuo")
+                      }  
                     }
                   }
                 }
@@ -287,26 +247,20 @@ console.log("await this.handleInputPass(http, code) ",await this.handleInputPass
           }
         }
       }`
-    // const res = await this.handleInputPass("transfer", http, code)
-
-    await this.handleInputPass("transfer", http, code).then((res) => {
-    // console.log("transfer result: ", res)      
-    // alert("转账成功Transfer Succeeded")  
-})
-
+    await this.handleInputPass("transfer", http, code)
   }
 
   renderOptions() {
     return (this.state.addrList.map((i) => {
-        return <Dropdown.Item eventKey={i.v} onSelect = {
-          (e) => {
-                  var tempC= e.substring(0,8) +"........"+ e.substring(e.length-7,e.length+1)
-                  this.setState({revAddress: e,
-                                 revAddress2: tempC
-                                })
-                  } 
-        } >{i.s}</Dropdown.Item>
-      }))
+      return <Dropdown.Item eventKey={i.v} onSelect = {
+        (e) => {
+          var tempC= e.substring(0,8) +"........"+ e.substring(e.length-7,e.length+1)
+          this.setState({revAddress: e,
+                         revAddress2: tempC
+                        })
+        } 
+      } >{i.s}</Dropdown.Item>
+    }))
   }
 
   render() {
@@ -329,71 +283,71 @@ console.log("await this.handleInputPass(http, code) ",await this.handleInputPass
 
       <div > 
         <Header />
-          <div className="Rui_relative">
-            <div className="Rui_address">
-              <form >
-                <label>
-                  <FormattedMessage id='address' />
-                </label>
-                <OverlayTrigger
-                  placement="right-start"
-                  delay={{ show: 250, hide: 400 }}
-                  overlay={renderTooltip}
-                >
-                  <CopyToClipboard text={this.state.revAddress}
-                    onCopy={() => this.setState({copied: true})}>
-                    <CopyIcon width="20px" height="20px" />
-                  </CopyToClipboard>
-                </OverlayTrigger>
-              </form>
-
-              <DropdownButton variant="secondary" id="dropdown-basic" title={this.state.revAddress2 === null ? "尚未导入私钥 No keys found." : this.state.revAddress2 }  >
-                {this.renderOptions()}
-              </DropdownButton>
-            </div>
-
-            <div className="Rui_balance">    
-               <div > <label><FormattedMessage id='balance' /></label></div>
-               <div > <label className="Rui_balance_num">{(this.state.balance/100000000).toFixed(4)} REV </label></div>
-               <div > <Button variant="outline-light" size="lg" onClick={()=>{this.setState({showModal1: true})}}><FormattedMessage id='check' /></Button></div>
-            </div>
-          </div> 
-
-      <Modal size="sm" show = {this.state.showModal1} onHide={this.queryBalance}>
-        <Modal.Body>
-          <FormattedMessage id='key_pass' />
-          <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={this.queryBalance}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <div className="Rui_transfer">
-            <form  >
-              <label><FormattedMessage id='to_address' /></label>
-              <input type="text" name="toAddr" value={this.state.toAddr} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
-              <label><FormattedMessage id='amount' /></label>
-              <input type="number" name="amount" value={this.state.amount} onChange={this.handleInputChange}  className="Rui_input form-control form-control-lg" />
+        <div className="Rui_relative">
+          <div className="Rui_address">
+            <form >
+              <label>
+                <FormattedMessage id='address' />
+              </label>
+              <OverlayTrigger
+                placement="right-start"
+                delay={{ show: 250, hide: 400 }}
+                overlay={renderTooltip}
+              >
+                <CopyToClipboard text={this.state.revAddress}
+                  onCopy={() => this.setState({copied: true})}>
+                  <CopyIcon width="20px" height="20px" />
+                </CopyToClipboard>
+              </OverlayTrigger>
             </form>
-            <p></p>
-            <Button variant="outline-light" size="lg" onClick={()=>{this.setState({showModal2: true})}}><FormattedMessage id='transfer' /></Button>
-      </div>
-      <Modal size="sm" show = {this.state.showModal2} onHide={this.transfer}>
-        <Modal.Body>
-          <FormattedMessage id='key_pass' />
-          <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
 
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={this.transfer}>
-            <FormattedMessage id='confirm' />
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal size="sm" show = {this.state.showModal3} onHide={()=>this.setState({showModal3: false})}>
+            <DropdownButton variant="secondary" id="dropdown-basic" title={this.state.revAddress2 === null ? "尚未导入私钥 No keys found." : this.state.revAddress2 }  >
+              {this.renderOptions()}
+            </DropdownButton>
+          </div>
+
+          <div className="Rui_balance">    
+             <div > <label><FormattedMessage id='balance' /></label></div>
+             <div > <label className="Rui_balance_num">{(this.state.balance/100000000).toFixed(4)} REV </label></div>
+             <div > <Button variant="outline-light" size="lg" onClick={()=>{this.setState({showModal1: true})}}><FormattedMessage id='check' /></Button></div>
+          </div>
+        </div> 
+
+        <Modal size="sm" show = {this.state.showModal1} onHide={this.queryBalance}>
+          <Modal.Body>
+            <FormattedMessage id='key_pass' />
+            <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={this.queryBalance}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <div className="Rui_transfer">
+              <form  >
+                <label><FormattedMessage id='to_address' /></label>
+                <input type="text" name="toAddr" value={this.state.toAddr} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
+                <label><FormattedMessage id='amount' /></label>
+                <input type="number" name="amount" value={this.state.amount} onChange={this.handleInputChange}  className="Rui_input form-control form-control-lg" />
+              </form>
+              <p></p>
+              <Button variant="outline-light" size="lg" onClick={()=>{this.setState({showModal2: true})}}><FormattedMessage id='transfer' /></Button>
+        </div>
+        <Modal size="sm" show = {this.state.showModal2} onHide={this.transfer}>
+          <Modal.Body>
+            <FormattedMessage id='key_pass' />
+            <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
+
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={this.transfer}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        <Modal size="sm" show = {this.state.showModal3} onHide={()=>this.setState({showModal3: false})}>
           <Modal.Body>
             <FormattedMessage id='wrong_key_pass' />
           </Modal.Body>
@@ -444,8 +398,8 @@ console.log("await this.handleInputPass(http, code) ",await this.handleInputPass
           </Modal.Footer>
         </Modal>        
       </div>
-  )
-}
+    )
+  }
 }
 
 export default withRouter(Transfer)
