@@ -221,17 +221,21 @@ class Transfer extends React.Component {
         rl(\`rho:registry:lookup\`), RevVaultCh,
       deployId(\`rho:rchain:deployId\`),stdout(\`rho:io:stdout\`)
       in {
-        rl!(\`rho:rchain:revVault\`, *RevVaultCh) |
+        rl!(\`rho:rchain:revVault\`, *RevVaultCh)|
         for (@(_, RevVault) <- RevVaultCh) {
            match ("${this.state.revAddress}", "${this.state.toAddr}", ${this.state.amount*100000000}) {
             (from, to, amount) => {
-              new vaultCh, revVaultkeyCh, deployerId(\`rho:rchain:deployerId\`) in {
+              new vaultCh, vault2Ch, revVaultkeyCh, deployerId(\`rho:rchain:deployerId\`) in {
                 @RevVault!("findOrCreate", from, *vaultCh) |
+                @RevVault!("findOrCreate", to, *vault2Ch) |
                 @RevVault!("deployerAuthKey", *deployerId, *revVaultkeyCh) |
-                for (@(true, vault) <- vaultCh; key <- revVaultkeyCh) {
+                for (@(true, vault) <- vaultCh; _ <- vault2Ch; key <- revVaultkeyCh) {
                   new resultCh in {
                     @vault!("transfer", to, amount, *key, *resultCh) |
                     for (@(result, _ ) <- resultCh) {
+                      for (@historySet <- @"TransferHistory1") {
+                        @"TransferHistory1"!(historySet.add([from, to, amount, result]))
+                      }|  
                       if (result == true) {
                         deployId!("dui")|
                         stdout!("dui")
