@@ -3,11 +3,11 @@
 
   "name": "Rui锐",
   "description": "RChain Wallet",
-  "version": "0.9.1",
+  "version": "0.9.2",
 
   "browser_action": {
     "default_popup": "index.html",
-    "default_title": "Open the popup"
+    "default_title": "Rui锐"
   },
   "icons": {
     "32": "rui-32.png",
