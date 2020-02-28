@@ -85,9 +85,9 @@ class UploadPage extends React.Component {
       <div className="Rui_relative">
         <Header />
         <div className="Rui_upload" > 
-          <label>
+          <h4>
             <FormattedMessage id='import' />
-          </label>
+          </h4>
           <FileInput
             readAs='binary'
             onLoad= {this.onLoad.bind(this)}

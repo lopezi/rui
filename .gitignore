@@ -63,6 +63,6 @@ typings/
 build.*
 build/
 bak.*
-
+*.keystore
 
 

@@ -26,14 +26,18 @@ const CN = {
   inconsistency: '两次输入的密码不一致',
   wrong_old: '原密码输入错误',
   wrong_key_pass: 'Keystore密码错',
-  transfer_success: '转账成功',
+  transfer_success: '交易已提交，等待打包。交易ID:',
   transfer_failed: '转账失败',
   wrong_opt: '操作失败',
   change_pass: '修改密码',
   address_man: '地址管理',
   only_alphanumeric: '只允许输入字母和数字',
   more_than_5: '密码必须多于5位字符',
-  about: '关于'
+  about: '关于',
+  history: '转账记录',
+  key_tools: '密钥工具箱',
+  paste_key: '请把私钥粘贴到输入框',
+  save_text: 'Keystore已生成，请将文本框中的代码复制保存到一个文本文件'
 
 
 

@@ -46,6 +46,7 @@ class RegPage extends React.Component {
         var salt = bcrypt.genSaltSync(10);
         var hash = bcrypt.hashSync(this.state.pass1, salt);
         chrome.storage.local.set({'userPass': hash}, function() {return})
+        chrome.storage.local.set({'History': []}, function() {return})
         this.props.history.push('/upload')      
       }else{
         // alert("再次输入的密码不一致")   

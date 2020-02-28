@@ -13,6 +13,8 @@ import Transfer from './transfer'
 import PassPage from './pass'
 import AddressPage from './address'
 import AboutPage from './about'
+import HistoryPage from './history'
+import KeytoolsPage from './keytools'
 import Auth from './auth'
 import {IntlProvider} from "react-intl"
 import CN from './lang/CN'
@@ -61,6 +63,8 @@ class App extends Component {
           <ProtectedRoute  path="/pass" component={ PassPage } />
           <ProtectedRoute  path="/address" component={ AddressPage } />          
           <ProtectedRoute  path="/about" component={ AboutPage } />    
+          <ProtectedRoute  path="/history" component={ HistoryPage } />   
+          <ProtectedRoute  path="/keytools" component={ KeytoolsPage } />   
           <Redirect  to="/login" />
         </Switch>
       </Container >   

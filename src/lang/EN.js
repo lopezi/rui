@@ -26,15 +26,18 @@ const EN = {
   inconsistency: 'New passwords are not identical',
   wrong_old: 'The old password is wrong',
   wrong_key_pass: 'Wrong Password for Keystore',
-  transfer_success: 'Transfer Succeeded',
+  transfer_success: 'Waiting for adding to block, DeployID:',
   transfer_failed: 'Transfer Failed',
   wrong_opt: 'The operation failed',
   change_pass: 'Change Password',
   address_man: 'Address Management',
   only_alphanumeric: 'Only Alphanumeric',
   more_than_5: 'Should be more than 5 characters',
-  about: 'About'
-
+  about: 'About',
+  history: 'Transfer History',
+  key_tools: 'Key Tools',
+  paste_key: 'Paste your private key',
+  save_text: 'Keystore is generated. Please save the code below to a text file.'
 
 }
 export default EN

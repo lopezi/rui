@@ -54,9 +54,9 @@ class Address extends React.Component {
       <div >
         <Header />
         <div className="Rui_address_page" >    
-          <label>
+          <h4>
             <FormattedMessage id='addr_list' />
-          </label>  
+          </h4>  
           <ListGroup variant="flush" style={{ backgroundColor: '#606163', opacity:0.8 }}>
             { 
               add_5.map((addr) => 
