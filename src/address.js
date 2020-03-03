@@ -10,6 +10,7 @@ import ImportIcon from './Icons/Import.js'
 import {FormattedMessage} from 'react-intl'
 
 const add_5 = ["address1","address2","address3","address4","address5"]
+
 class Address extends React.Component {
 
   constructor(props) {
@@ -24,6 +25,8 @@ class Address extends React.Component {
     this.remove = this.remove.bind(this)
     this.toUpload = this.toUpload.bind(this)
   }
+
+
 
   async componentDidMount() {
     add_5.map( i => {

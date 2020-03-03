@@ -9,11 +9,6 @@ import basicKey from './bk'
 import { getAddrFromEth } from './getAddress.js'
 import {FormattedMessage} from 'react-intl'
 
-const FileInput = require('react-simple-file-input').default
-const Wallet = require('ethereumjs-wallet')
-const passworder = require('browser-passworder')
-var temp_i = ""
-
 class UploadPage extends React.Component {
 
   constructor(props) {
@@ -22,25 +17,34 @@ class UploadPage extends React.Component {
       pass: '',
       file: null,
       fileContents: '',
-      pointer: null,
-      showModal1: false,
-      showModal2: false
+      addList: [],
+      temp_i: '',
+      showModal1: false,   // wrong pass
+      showModal2: false,   // import succeeded
+      showModal3: false,   // already imported
+      showModal4: false    // list is full
     }
     this.handleInputChange = this.handleInputChange.bind(this);
     this.upload = this.upload.bind(this)
+
   }
 
   async componentDidMount() {
     const addr =["address1","address2","address3","address4","address5"]
+    var tempAdd = []
     for ( const i of addr) {
       await chrome.storage.local.get([i], function(result) {
         // console.log(result.hasOwnProperty(i),i)
         if (result.hasOwnProperty(i) === false) {
-          temp_i= i
-          return
+          // temp_i= i
+          this.setState({temp_i: i})
+        }else{
+          tempAdd.push(result[i])
         }
-      })
+      }.bind(this))
     }
+    // console.log("tempAdd: ",tempAdd)
+    this.setState({addList: tempAdd})
   }
 
   handleInputChange(event) {
@@ -54,6 +58,12 @@ class UploadPage extends React.Component {
 
   upload(event) {
     event.preventDefault()
+    const Wallet = require('ethereumjs-wallet')
+    const passworder = require('browser-passworder')
+    if ( this.state.addList.length ===5) {
+      this.setState({showModal4: true})
+      return
+    }
     try {
       var temp = Wallet.fromV3(this.state.fileContents, this.state.pass, true)
     }
@@ -62,10 +72,20 @@ class UploadPage extends React.Component {
       this.setState({showModal1: true})
       return
     }
+
+    for (const i of this.state.addList) {
+      // console.log("temp.get.from.chrome: ", getAddrFromEth(temp.getAddress().toString('hex')))
+      if (getAddrFromEth(temp.getAddress().toString('hex')) === i) {
+        this.setState({showModal3: true})
+        return
+      }
+    }
+
     // console.log(temp.getAddress().toString('hex'))
-    const c_addr = temp_i
+    // const c_addr = temp_i
+    const c_addr = this.state.temp_i
     passworder.encrypt(basicKey.hash, this.state.fileContents)
-    .then(function(blob) {
+    .then(function(blob) {      
       chrome.storage.local.set({[ getAddrFromEth(temp.getAddress().toString('hex')) + "_keyfile"]: blob}, function() {})
       passworder.decrypt(basicKey.hash, blob)
     })
@@ -76,8 +96,18 @@ class UploadPage extends React.Component {
     this.props.history.push('/transfer')
   }
 
-  onLoad (event, file) {
-    this.setState({file: file, fileContents: event.target.result})
+  // onLoad (event, file) {
+  //   this.setState({file: file, fileContents: event.target.result},()=>{console.log(event.target.result)})
+  //   console.log("file: ",file)
+  //   console.log("fileContents: ",event.target.result)
+  // }
+
+  onLoad (event){
+    var reader = new FileReader();
+    reader.onload = (x) =>{this.setState({fileContents: x.target.result}, () =>{
+      // console.log("this.state.fileContents: ", this.state.fileContents) 
+    })}
+    reader.readAsBinaryString(event.target.files[0])
   }
 
   render() {
@@ -88,10 +118,11 @@ class UploadPage extends React.Component {
           <h4>
             <FormattedMessage id='import' />
           </h4>
-          <FileInput
+         { /* <FileInput
             readAs='binary'
             onLoad= {this.onLoad.bind(this)}
-          />    
+          />    */}
+          <input type="file" onChange= {this.onLoad.bind(this)}/>
           <div className="Rui_upload" > 
             <form>
               <label>
@@ -103,6 +134,7 @@ class UploadPage extends React.Component {
             </form>
             <Button variant="outline-light" size="lg" onClick={this.upload}><FormattedMessage id='import' /></Button>
           </div>
+
         </div>
 
         <Modal size="sm" show = {this.state.showModal1} onHide={()=>this.setState({showModal1: false})}>
@@ -122,6 +154,28 @@ class UploadPage extends React.Component {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="primary" onClick={()=>this.setState({showModal2: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal size="sm" show = {this.state.showModal3} onHide={()=>this.setState({showModal3: false})}>
+          <Modal.Body>
+            <FormattedMessage id='already_imported' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal3: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal size="sm" show = {this.state.showModal4} onHide={()=>this.setState({showModal4: false})}>
+          <Modal.Body>
+            <FormattedMessage id='list_is_full' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal4: false})}>
               <FormattedMessage id='confirm' />
             </Button>
           </Modal.Footer>

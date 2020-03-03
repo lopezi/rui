@@ -15,8 +15,6 @@ import Col from 'react-bootstrap/Col'
 
 import RIcon from './Icons/R.js'
 
-
-
 class History extends React.Component {
 
   constructor(props) {
@@ -26,6 +24,54 @@ class History extends React.Component {
                  }
   }
 
+  // async componentDidMount() { 
+
+  //   var trans 
+  //   var newTrans=[]
+  //   // const trans = this.state.history
+  //   // const url = "http://104.197.246.182:40403/api/deploy/"  // mainnet
+  //   // const url = "http://207.180.230.84:40403/api/deploy/"    // my contabo 30G
+  //   const url = "http://35.220.140.14:40403/api/deploy/" 
+  //   await chrome.storage.local.get(['History'], function(result) {
+  //     trans = result.History     
+  //     trans.map((i) => {
+  //       if (i['status'] ==="Pending") {
+  //         fetch(url + i['deployId'], { method:'get' })
+  //         .then((str) => {
+  //               // console.log("str: ",str)
+  //           // if (str.status === 400) {
+  //             str.json().then(temp =>{
+  //                // console.log("This........: ", JSON.stringify(temp).substring(2,11))               
+  //                if (JSON.stringify(temp).substring(2,11) ==="blockHash") {
+  //                   i['status'] = "Confirmed"
+  //                   // console.log("confirmed: ",i)
+
+  //                 }else{ console.log("time stamp: ",  Date.now() - i['time'])
+  //                   if (Date.now() - i['time'] > 24*60*60*1000) {
+  //                     i['status'] = "Failed"  
+  //                     // console.log("Failure: ",i)
+
+  //                   }
+  //                 }
+  //            })
+  //           // }
+  //         })
+  //         .catch(function() {
+  //         })
+  //       }
+  //       newTrans.push(i)        
+  //     })
+  //   })
+
+  //   setTimeout(function(){
+  //      this.setState({history: newTrans},()=>{
+  //         chrome.storage.local.set({'History': this.state.history})
+  //         // console.log("newTrans: ",newTrans)
+  //      }) 
+  //   }.bind(this),1000)
+  // }  
+
+
   async componentDidMount() { 
 
     var trans 
@@ -34,47 +80,72 @@ class History extends React.Component {
     // const url = "http://104.197.246.182:40403/api/deploy/"  // mainnet
     // const url = "http://207.180.230.84:40403/api/deploy/"    // my contabo 30G
     const url = "http://35.220.140.14:40403/api/deploy/" 
+    // const url = "http://observer-us.services.mainnet.rchain.coop:40403/api/deploy/"
     await chrome.storage.local.get(['History'], function(result) {
-        trans = result.History     
-        trans.map((i) => {
-      if (i['status'] ==="Pending") {
-        fetch(url + i['deployId'], { method:'get' })
-        .then((str) => {
-              // console.log("str: ",str)
-          // if (str.status === 400) {
-            str.json().then(temp =>{
-               // console.log("This........: ", JSON.stringify(temp).substring(2,11))               
-               if (JSON.stringify(temp).substring(2,11) ==="blockHash") {
-                  i['status'] = "Confirmed"
-                  // console.log("confirmed: ",i)
+      trans = result.History     
+      trans.map((i) => {
+        if (i['status'] ==="Pending") {
+          fetch(url + i['deployId'], { method:'get',  mode: 'cors' })
+          .then((str) => {
+                // console.log("str: ",str)
+            // if (str.status === 400) {
+              str.json().then(temp =>{
+                 // console.log("This........: ", JSON.stringify(temp).substring(2,11))               
+                if (JSON.stringify(temp).substring(2,11) ==="blockHash") {
+                    i['status'] = "Confirmed"
+                    // console.log("onChain now: ",i)
+                    return
+                  // const url2 = 'http://35.220.140.14:40403/api/data-at-name'
+                  // // const url2 = "http://observer-us.services.mainnet.rchain.coop:40403/api/data-at-name"
 
-                }else{ console.log("time stamp: ",  Date.now() - i['time'])
+                  // var uu = `{"name": {"UnforgDeploy":{"data":"${i['deployId']}"}}, "depth":300}`
+                  // var req = {method: 'POST', body: JSON.stringify(eval("(" + uu + ")"))}
+                  // try {
+                  //   fetch(url2, req).then(r => r.json()).then(x => {
+                  //     console.log("x: ",x)
+                  //     if (x.length === 0) {
+                  //       i['status'] = "Unknown"
+                  //     }else{
+                  //       if (x.expr[0].ExprInt.data === "dui"){
+                  //         i['status'] = "Confirmed"
+                  //         console.log("get here confirmed")
+                  //       }else{
+                  //         i['status'] = "Failed"
+                  //         console.log("get here Failed")
+                  //       }
+                  //     }  
+                  //   })
+                  // }  
+                  // catch(err) {
+                  //       i['status'] = "Unknown"
+                  //       console.log("get here Unknown")
+                  // }
+
+                }else{ //console.log("time stamp: ",  Date.now() - i['time'])
                   if (Date.now() - i['time'] > 24*60*60*1000) {
                     i['status'] = "Failed"  
-                    // console.log("Failure: ",i)
+                      // console.log("Failure: ",i)
 
                   }
                 }
-           })
-          // }
-        })
-        .catch(function() {
-        })
-      }
-      newTrans.push(i)        
-
+             })
+            // }
+          })
+          .catch(function() {
+          })
+        }
+        newTrans.push(i)        
+      })
     })
 
-    })
+    setTimeout(function(){
+       this.setState({history: newTrans},()=>{
+          chrome.storage.local.set({'History': this.state.history})
+          // console.log("newTrans: ",newTrans)
+       }) 
+    }.bind(this),1000)
+  } 
 
-setTimeout(function(){
-             this.setState({history: newTrans},()=>{
-        chrome.storage.local.set({'History': this.state.history})
-        // console.log("newTrans: ",newTrans)
-      }) 
-        }.bind(this),1000)
-
-  }  
 
   render() {
 

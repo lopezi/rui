@@ -49,17 +49,17 @@ const sendDeploy = async (rnodeUrl, code, privateKey) => {
 const url = "http://35.220.140.14:40403/api/last-finalized-block"
 const num = await fetch(url, { method:'get' })
         .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
-console.log("num: ", num)
+// console.log("num: ", num)
 
   const deployData = {
-    term: code, phlolimit: 100e6, phloprice: 1,
+    term: code, phlolimit: 300000, phloprice: 1,
     validafterblocknumber: num+1
   }
   const deploy = signDeploy(privateKey, deployData)
   // const isValidDeploy = verifyDeploy(deploy)
   try {
     const { result } = await DoDeploy(deploy)
-    console.log('DoDeploy: ', result)
+    // console.log('DoDeploy: ', result)
     return result
   } catch (error) { return error }
 
@@ -67,7 +67,7 @@ console.log("num: ", num)
 
   try {
     const resPropose = await propose()
-    console.log('PROPOSE', resPropose)
+    // console.log('PROPOSE', resPropose)
   } catch (error) { console.log("Propose Error: ",error) }
 
   // const data = await getDataForDeploy(rnodeUrl, deploy.sig)
@@ -113,6 +113,7 @@ class Transfer extends React.Component {
                   showModal6: false, // wrong_opt
                   showModal7: false, // cannot get keystore from storage
                   showModal8: false, // only alphabets allowed
+                  showModal9: false, // balance is not enough
                   showSpinner: false,
                   deployId: null 
                 }
@@ -191,12 +192,13 @@ class Transfer extends React.Component {
             catch(err) {
               // alert("Keystore密码错Wrong Password")
               this.setState({showModal3: true, showSpinner: false })
+              // console.log("here is #194")
               return
             }  
             this.setState({ sk: tempP }, () => {
               try {
                 sendDeploy(http, code, this.state.sk).then( (response) => {
-                  console.log("Response: ", response)
+                  // console.log("Response: ", response)
                   try {
                     if (response.substring(0,8) ==="Success!") {
                       this.setState({deployId: response.substring(22,164), showModal4: true, showSpinner: false})
@@ -234,6 +236,7 @@ class Transfer extends React.Component {
       catch(err) {
         // alert("密码输入有误，操作失败")
         this.setState({showModal7: true})
+        // console.log("here is #237")
         return
       }
     }.bind(this))
@@ -290,49 +293,68 @@ class Transfer extends React.Component {
     }
 
     const b = await fetch(url, req).then(r => r.json()).then(x => x.expr[0].ExprInt.data)
-    this.setState({balance: b}, ()=>{console.log("Balance: ",this.state.balance)})
+    this.setState({balance: b}, ()=>{ 
+    //console.log("Balance: ",this.state.balance)
+    })
   }
 
 
   async transfer() {
     // event.preventDefault()
-    const code =`
-      new
-        rl(\`rho:registry:lookup\`), RevVaultCh,
-      deployId(\`rho:rchain:deployId\`),stdout(\`rho:io:stdout\`)
-      in {
-        rl!(\`rho:rchain:revVault\`, *RevVaultCh)|
-        for (@(_, RevVault) <- RevVaultCh) {
-           match ("${this.state.revAddress}", "${this.state.toAddr}", ${this.state.amount*100000000}) {
-            (from, to, amount) => {
-              new vaultCh, vault2Ch, revVaultkeyCh, deployerId(\`rho:rchain:deployerId\`) in {
-                @RevVault!("findOrCreate", from, *vaultCh) |
-                @RevVault!("findOrCreate", to, *vault2Ch) |
-                @RevVault!("deployerAuthKey", *deployerId, *revVaultkeyCh) |
-                for (@(true, vault) <- vaultCh; _ <- vault2Ch; key <- revVaultkeyCh) {
-                  new resultCh in {
-                    @vault!("transfer", to, amount, *key, *resultCh) |
-                    for (@(result, _ ) <- resultCh) {
-                      for (@historySet <- @"TransferHistory1") {
-                        @"TransferHistory1"!(historySet.add([from, to, amount, result]))
-                      }|  
-                      if (result == true) {
-                        deployId!("dui")|
-                        stdout!("dui")
-                      } else {
-                        deployId!("cuo")|
-                        stdout!("cuo")
-                      }  
+    var amt 
+    if (this.state.balance - this.state.amount * 100000000 < 300000) {
+      amt = (this.state.balance  - 300000).toFixed(0)   
+      this.setState({amount: ((this.state.balance  - 300000) / 100000000).toFixed(8)})
+    }else{
+      amt = (this.state.amount * 100000000).toFixed(0)
+      this.setState({amount: (amt / 100000000).toFixed(8)})  
+    }
+    // console.log("amt: ",amt)
+    // console.log("amount: ",this.state.amount)
+    if (amt <=0) {
+        this.setState({showModal9: true, showModal2: false})
+        return
+    }
+
+      const code =`
+        new
+          rl(\`rho:registry:lookup\`), RevVaultCh,
+        deployId(\`rho:rchain:deployId\`),stdout(\`rho:io:stdout\`)
+        in {
+          rl!(\`rho:rchain:revVault\`, *RevVaultCh)|
+          for (@(_, RevVault) <- RevVaultCh) {
+             match ("${this.state.revAddress}", "${this.state.toAddr}", ${amt}) {
+              (from, to, amount) => {
+                new vaultCh, vault2Ch, revVaultkeyCh, deployerId(\`rho:rchain:deployerId\`) in {
+                  @RevVault!("findOrCreate", from, *vaultCh) |
+                  @RevVault!("findOrCreate", to, *vault2Ch) |
+                  @RevVault!("deployerAuthKey", *deployerId, *revVaultkeyCh) |
+                  for (@(true, vault) <- vaultCh; _ <- vault2Ch; key <- revVaultkeyCh) {
+                    new resultCh in {
+                      @vault!("transfer", to, amount, *key, *resultCh) |
+                      for (@(result, _ ) <- resultCh) {
+                        for (@historySet <- @"TransferHistory1") {
+                          @"TransferHistory1"!(historySet.add([from, to, amount, result]))
+                        }|  
+                        if (result == true) {
+                          deployId!("dui")|
+                          stdout!("dui")
+                        } else {
+                          deployId!("cuo")|
+                          stdout!("cuo")
+                        }  
+                      }
                     }
                   }
                 }
               }
             }
           }
-        }
-      }`
-      this.setState({showModal2: false, showSpinner: true})
-    await this.handleInputPass("transfer", http, code)
+        }`
+        // console.log("code: ", code)
+        this.setState({showModal2: false, showSpinner: true})
+      await this.handleInputPass("transfer", http, code)
+
   }
 
   renderOptions() {
@@ -514,7 +536,17 @@ class Transfer extends React.Component {
               <FormattedMessage id='confirm' />
             </Button>
           </Modal.Footer>
-        </Modal>        
+        </Modal>      
+        <Modal size="sm" show = {this.state.showModal9} onHide={()=>this.setState({showModal9: false})}>
+          <Modal.Body>
+            <FormattedMessage id='balance_not_enough' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal9: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>     
       </div>
     )
   }

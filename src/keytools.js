@@ -61,7 +61,7 @@ class KeytoolsPage extends React.Component {
 
 
           const temp = await wallet.toV3String(this.state.pass1).toString()
-          this.setState({keystore: temp, display1: 'none', display2: 'block', showSpinner: false,showModal1: false}, ()=>{console.log(temp)})
+          this.setState({keystore: temp, display1: 'none', display2: 'block', showSpinner: false,showModal1: false}, ()=>{})
         }else{
           // alert("再次输入的密码不一致")   
           this.setState({showModal2: true, showSpinner: false})

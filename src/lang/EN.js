@@ -37,7 +37,10 @@ const EN = {
   history: 'Transfer History',
   key_tools: 'Key Tools',
   paste_key: 'Paste your private key',
-  save_text: 'Keystore is generated. Please save the code below to a text file.'
+  save_text: 'Keystore is generated. Please save the code below to a text file.',
+  balance_not_enough: 'Balance is not enough.',
+  already_imported: 'This Keystore has already been imported.',
+  list_is_full: 'Address list is full.'
 
 }
 export default EN

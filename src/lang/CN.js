@@ -15,7 +15,7 @@ const CN = {
   to_address: '对方地址',
   amount: '金额',
   transfer: '转账',
-  import: '导入私钥文件',  
+  import: '导入Keystore',  
   null_addr: '空地址',
   null_pass: '新密码不能为空',
   delete: '删除',
@@ -37,8 +37,10 @@ const CN = {
   history: '转账记录',
   key_tools: '密钥工具箱',
   paste_key: '请把私钥粘贴到输入框',
-  save_text: 'Keystore已生成，请将文本框中的代码复制保存到一个文本文件'
-
+  save_text: 'Keystore已生成，请将文本框中的代码复制保存到一个文本文件',
+  balance_not_enough: '账户余额不足，无法完成交易',
+  already_imported: '该Keystore已导入',
+  list_is_full: '地址列表已满'
 
 
 }

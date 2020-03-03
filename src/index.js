@@ -2,7 +2,7 @@
 
 import ReactDom from "react-dom"
 import React, { Component } from 'react';
-import { BrowserRouter, Switch, Route, Redirect} from 'react-router-dom';
+import { HashRouter, Switch, Route, Redirect} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Container from "react-bootstrap/Container"
 import "./app.css";
@@ -19,6 +19,8 @@ import Auth from './auth'
 import {IntlProvider} from "react-intl"
 import CN from './lang/CN'
 import EN from './lang/EN'  
+import {unregister} from './serviceWorker';
+unregister();
 
 const ProtectedRoute = ({ component: Component, ...rest }) => (
   <Route {...rest} render={(props) => (
@@ -72,7 +74,7 @@ class App extends Component {
   }
 }
 
-ReactDom.render(<BrowserRouter><IntlProvider locale={navigator.language} messages={chooseLocale()}><App /></IntlProvider></BrowserRouter> , document.getElementById("root"))
+ReactDom.render(<HashRouter><IntlProvider locale={navigator.language} messages={chooseLocale()}><App /></IntlProvider></HashRouter> , document.getElementById("root"))
 
 
 
