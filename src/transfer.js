@@ -46,10 +46,9 @@ const rnode = (rnodeUrl) => {
 
 const sendDeploy = async (rnodeUrl, code, privateKey) => {
   const { DoDeploy, propose, getBlock } = rnode(rnodeUrl)
-const url = "http://35.220.140.14:40403/api/last-finalized-block"
-const num = await fetch(url, { method:'get' })
-        .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
-// console.log("num: ", num)
+  const url = "http://35.220.140.14:40403/api/last-finalized-block"
+  const num = await fetch(url, { method:'get' })
+    .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
 
   const deployData = {
     term: code, phlolimit: 300000, phloprice: 1,
@@ -65,10 +64,10 @@ const num = await fetch(url, { method:'get' })
 
 
 
-  try {
-    const resPropose = await propose()
-    // console.log('PROPOSE', resPropose)
-  } catch (error) { console.log("Propose Error: ",error) }
+  // try {
+  //   const resPropose = await propose()
+  //   // console.log('PROPOSE', resPropose)
+  // } catch (error) { console.log("Propose Error: ",error) }
 
   // const data = await getDataForDeploy(rnodeUrl, deploy.sig)
   // console.log('data: ', data)
@@ -115,11 +114,12 @@ class Transfer extends React.Component {
                   showModal8: false, // only alphabets allowed
                   showModal9: false, // balance is not enough
                   showSpinner: false,
+                  showBalanceSpinner : true,
                   deployId: null 
                 }
 
-    this.handleInputChange = this.handleInputChange.bind(this)
-    // this.queryBalance = this.queryBalance.bind(this)
+    this.handleInputChange1 = this.handleInputChange1.bind(this)
+    this.handleInputChange2 = this.handleInputChange2.bind(this)
     this.checkBalance = this.checkBalance.bind(this)
     this.transfer = this.transfer.bind(this)
     this.renderOptions = this.renderOptions.bind(this)
@@ -127,7 +127,7 @@ class Transfer extends React.Component {
     this.storeHistory = this.storeHistory.bind(this)    
   }
 
-  handleInputChange(event) {
+  handleInputChange1(event) {  // for transfer recipient and amount
        var pass = event.target.value
        var reg = /^[A-Za-z0-9.]+$/
        var test = reg.test(pass)
@@ -140,6 +140,14 @@ class Transfer extends React.Component {
        }      
   }
 
+  handleInputChange2(event) {  // for keystore with special alphabets
+    const target = event.target
+    const value = target.value
+    const name = target.name
+    this.setState({
+      [name]: value
+    })
+  }
 
 
 
@@ -163,7 +171,6 @@ class Transfer extends React.Component {
   }
 
   async storeHistory(){ 
-  // time, this.state.revAddress, this.state.deployId, this.state.amount, this.state.to, "pending"
     const d = Date.now()
     chrome.storage.local.get(["History"], function(result) {
       var newOne = result.History
@@ -173,10 +180,6 @@ class Transfer extends React.Component {
   }  
 
   async handleInputPass(item, http, code){ 
-    // item ==="check balance" 
-    // ? this.setState({showModal1: false})
-    // : this.setState({showModal2: false})
-    // this.setState({showModal2: false, showSpinner: true})
     var Wallet = require('ethereumjs-wallet')
     var passworder = require('browser-passworder')
     const c_key = this.state.revAddress + "_keyfile"
@@ -203,14 +206,6 @@ class Transfer extends React.Component {
                     if (response.substring(0,8) ==="Success!") {
                       this.setState({deployId: response.substring(22,164), showModal4: true, showSpinner: false})
                       this.storeHistory()
-                      // item ==="check balance" 
-                      //   ? this.setState({balance: response})
-                      //   : response === 'dui' 
-                      //     // ? alert("转账成功Transfer Succeeded") 
-                      //     ? this.setState({showModal4: true, showSpinner: false})
-                      //     // : alert("转账失败Transfer Failed") 
-                      //     : this.setState({showModal5: true, showSpinner: false})
-                      // return response
                     }else{
                       // alert("操作失败 The operation failed")
                       this.setState({showModal6: true, showSpinner: false})
@@ -236,36 +231,9 @@ class Transfer extends React.Component {
       catch(err) {
         // alert("密码输入有误，操作失败")
         this.setState({showModal7: true})
-        // console.log("here is #237")
         return
       }
     }.bind(this))
-  }
-
-  async queryBalance() {
-    // const code =`
-    //   new
-    //   rl(\`rho:registry:lookup\`), RevVaultCh,
-    //   vaultCh, balanceCh,
-    //   deployId(\`rho:rchain:deployId\`)
-    //   in {
-    //     rl!(\`rho:rchain:revVault\`, *RevVaultCh) |
-    //     for (@(_, RevVault) <- RevVaultCh) {
-    //       match "${this.state.revAddress}" {
-    //         revAddress => {
-    //           @RevVault!("findOrCreate", revAddress, *vaultCh) |
-    //           for (@(true, vault) <- vaultCh) {
-    //             @vault!("balance", *balanceCh) |
-    //             for (@balance <- balanceCh) {
-    //               deployId!(balance)
-    //             }
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // `
-    // await this.handleInputPass("check balance", http, code)
   }
 
   async checkBalance () {
@@ -294,10 +262,9 @@ class Transfer extends React.Component {
 
     const b = await fetch(url, req).then(r => r.json()).then(x => x.expr[0].ExprInt.data)
     this.setState({balance: b}, ()=>{ 
-    //console.log("Balance: ",this.state.balance)
+      this.setState({showBalanceSpinner: false})
     })
   }
-
 
   async transfer() {
     // event.preventDefault()
@@ -363,7 +330,8 @@ class Transfer extends React.Component {
         (e) => {
           var tempC= e.substring(0,8) +"........"+ e.substring(e.length-7,e.length+1)
           this.setState({revAddress: e,
-                         revAddress2: tempC
+                         revAddress2: tempC,
+                         showBalanceSpinner: true
                         },()=> {this.checkBalance ()})
         } 
       } >{i.s}</Dropdown.Item>
@@ -391,23 +359,6 @@ class Transfer extends React.Component {
         <Header />
         <div className="Rui_relative">
           <div className="Rui_address">
-            { /* <form >
-             <label>
-                <FormattedMessage id='address' />
-              </label>
- 
-              <OverlayTrigger
-                placement="right-start"
-                delay={{ show: 250, hide: 400 }}
-                overlay={renderTooltip}
-              >
-                <CopyToClipboard text={this.state.revAddress}
-                  onCopy={() => this.setState({copied: true})}>
-                  <CopyIcon width="20px" height="20px" />
-                </CopyToClipboard>
-              </OverlayTrigger>
-            </form>
-         */ } 
             <Container style={{ paddingTop: '4px', paddingLeft: '1px' }}>
                 <Row >
                   <Col xs={1}> </Col>
@@ -434,35 +385,27 @@ class Transfer extends React.Component {
           </div>
 
           <div className="Rui_balance">    
-          { /*    <div > <label><FormattedMessage id='balance' /></label></div> */ }
            <Row style={{ paddingTop: '10px' }}>
           <Col md={{ span: 4, offset: 4 }}>
             <img src={require('./rchain_white.png')} alt="rev" />
           </Col>
         </Row>
-             <div > <label className="Rui_balance_num">{(this.state.balance/100000000).toFixed(4)} REV </label></div>
-          { /*   <div > <Button variant="outline-light" size="lg" onClick={this.checkBalance}><FormattedMessage id='check' /></Button></div> */ }
+          <div > <label className="Rui_balance_num">
+          { this.state.showBalanceSpinner 
+            ? <span> <Spinner as="span" animation="grow" size="lg" role="status" aria-hidden="true" />
+                REV</span>
+            : <span> {(this.state.balance/100000000).toFixed(4)} REV</span>
+          }  
+          </label></div>
           </div>
         </div> 
-
-       { /* <Modal size="sm" show = {this.state.showModal1} onHide={this.checkBalance}>
-          <Modal.Body>
-            <FormattedMessage id='key_pass' />
-            <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="primary" onClick={this.checkBalance}>
-              <FormattedMessage id='confirm' />
-            </Button>
-          </Modal.Footer>
-        </Modal>  */ }
 
         <div className="Rui_transfer">
           <form  >
             <label><FormattedMessage id='to_address' /></label>
-            <input type="text" name="toAddr" value={this.state.toAddr} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
+            <input type="text" name="toAddr" value={this.state.toAddr} onChange={this.handleInputChange1} className="Rui_input form-control form-control-lg" />
             <label><FormattedMessage id='amount' /></label>
-            <input type="number" name="amount" value={this.state.amount} onChange={this.handleInputChange}  className="Rui_input form-control form-control-lg" />
+            <input type="number" name="amount" value={this.state.amount} onChange={this.handleInputChange1}  className="Rui_input form-control form-control-lg" />
           </form>
           <p></p>
           { !this.state.showSpinner 
@@ -477,7 +420,7 @@ class Transfer extends React.Component {
         <Modal size="sm" show = {this.state.showModal2} onHide={this.transfer}>
           <Modal.Body>
             <FormattedMessage id='key_pass' />
-            <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
+            <input type="password" name="PKpass" value={this.state.PKpass} onChange={this.handleInputChange2} className="Rui_input form-control form-control-lg" />
           </Modal.Body>
           <Modal.Footer>
             <Button variant="primary" onClick={this.transfer}>

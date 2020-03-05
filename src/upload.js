@@ -87,7 +87,7 @@ class UploadPage extends React.Component {
     passworder.encrypt(basicKey.hash, this.state.fileContents)
     .then(function(blob) {      
       chrome.storage.local.set({[ getAddrFromEth(temp.getAddress().toString('hex')) + "_keyfile"]: blob}, function() {})
-      passworder.decrypt(basicKey.hash, blob)
+      // passworder.decrypt(basicKey.hash, blob)
     })
 
     chrome.storage.local.set({[c_addr]: getAddrFromEth(temp.getAddress().toString('hex'))}, function() {})
@@ -96,16 +96,9 @@ class UploadPage extends React.Component {
     this.props.history.push('/transfer')
   }
 
-  // onLoad (event, file) {
-  //   this.setState({file: file, fileContents: event.target.result},()=>{console.log(event.target.result)})
-  //   console.log("file: ",file)
-  //   console.log("fileContents: ",event.target.result)
-  // }
-
   onLoad (event){
     var reader = new FileReader();
     reader.onload = (x) =>{this.setState({fileContents: x.target.result}, () =>{
-      // console.log("this.state.fileContents: ", this.state.fileContents) 
     })}
     reader.readAsBinaryString(event.target.files[0])
   }

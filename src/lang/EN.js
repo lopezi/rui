@@ -32,7 +32,7 @@ const EN = {
   change_pass: 'Change Password',
   address_man: 'Address Management',
   only_alphanumeric: 'Only Alphanumeric',
-  more_than_5: 'Should be more than 5 characters',
+  more_than_5: 'At least 6 alphabets or numbers.',
   about: 'About',
   history: 'Transfer History',
   key_tools: 'Key Tools',
@@ -41,6 +41,7 @@ const EN = {
   balance_not_enough: 'Balance is not enough.',
   already_imported: 'This Keystore has already been imported.',
   list_is_full: 'Address list is full.'
+
 
 }
 export default EN

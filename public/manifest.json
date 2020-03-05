@@ -3,7 +3,7 @@
 
   "name": "Rui锐",
   "description": "RChain Wallet",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "browser_action": {
     "default_popup": "index.html",
     "default_title": "Rui锐",

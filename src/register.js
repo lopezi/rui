@@ -28,7 +28,7 @@ class RegPage extends React.Component {
        var reg = /^[A-Za-z0-9]+$/
        var test = reg.test(pass)
        const name = event.target.name
-       if (test || pass.length === 0) {
+       if (test || pass.length !== 0) {
           this.setState({[name]: event.target.value})
        }else{
          // alert('only alphanumeric')

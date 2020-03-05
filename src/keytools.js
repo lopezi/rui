@@ -9,6 +9,8 @@ import Button from "react-bootstrap/Button"
 import Modal from 'react-bootstrap/Modal'
 import {FormattedMessage} from 'react-intl'
 import Spinner from 'react-bootstrap/Spinner'
+import { getAddrFromEth } from './getAddress.js'
+import basicKey from './bk'
 
 class KeytoolsPage extends React.Component {
 
@@ -18,17 +20,26 @@ class KeytoolsPage extends React.Component {
                   pass1: null,
                   pass2: null,
                   tab: "key2keystore",
-                  keystore: null,
-                  showModal1: false,
-                  showModal2: false,
-                  showModal3: false,
-                  showModal4: false,
+                  keystore: "",
+                  revAddress: "",
+                  addList: [],
+                  blankAddress: '',
+                  showModal1: false,  // setup password
+                  showModal2: false,  // password inconsistency
+                  showModal3: false,  // at least 6 alpphabets
+                  showModal4: false,  // only alphabet allowed
+                  showModal5: false,  // more than 5 addresses found                  
+                  showModal6: false,  // import successfully
+                  showModal7: false,  // already imported
                   display1: 'block',
                   display2: 'none',
-                  showSpinner: false
+                  showSpinner: false,
+                  alreadyIn: false
                  }
     this.handleInputChange = this.handleInputChange.bind(this)
     this.toKeystore = this.toKeystore.bind(this)
+    this.getKeystore = this.getKeystore.bind(this)
+    this.importKeystore = this.importKeystore.bind(this)
   }
 
   handleInputChange(event) {
@@ -36,44 +47,94 @@ class KeytoolsPage extends React.Component {
        var reg = /^[A-Za-z0-9]+$/
        var test = reg.test(pass)
        const name = event.target.name
-       if (test || pass.length === 0) {
+       if (test || pass.length === 0) { // || pass.length === 0 because you cannot delete the last alphabet
           this.setState({[name]: event.target.value})
        }else{
          // alert('only alphanumeric')
-         this.setState({showModal4: true})
+         this.setState({[name]: null,showModal4: true})
+         return
        }      
   }
 
-  async toKeystore() {
-    this.setState({showSpinner: true})
-    try {
-      if(this.state.pass1.length < 6) {
-        // alert('must >6')
-        this.setState({showModal3: true, showSpinner: false})
-        return
-      } else  {
-        if ( this.state.pass1 === this.state.pass2 ){
-          var Wallet = require('ethereumjs-wallet')
-          var key = Buffer.from(this.state.sk, 'hex')
-          var wallet = Wallet.fromPrivateKey(key)
-
-      // this.setState({showSpinner: true}, ()=>{temp = wallet.toV3String(this.state.pass1).toString()})
-
-
-          const temp = await wallet.toV3String(this.state.pass1).toString()
-          this.setState({keystore: temp, display1: 'none', display2: 'block', showSpinner: false,showModal1: false}, ()=>{})
+  async componentDidMount() {
+    const addr =["address1","address2","address3","address4","address5"]
+    var addressOccupied = []
+    for ( const i of addr) {
+      await chrome.storage.local.get([i], function(result) {
+        if (result.hasOwnProperty(i) === false) {
+          this.setState({blankAddress: i})
         }else{
-          // alert("再次输入的密码不一致")   
-          this.setState({showModal2: true, showSpinner: false})
+          addressOccupied.push(result[i])
+        }
+      }.bind(this))
+    }
+    this.setState({addList: addressOccupied})
+  }
+
+  async toKeystore() {
+      try {
+        if(this.state.pass1.length < 6) {
+          // alert('must >6')
+          this.setState({showModal3: true})
           return
+        } else  {
+          if ( this.state.pass1 === this.state.pass2 ){
+            this.setState({showSpinner: true}, ()=>{
+              setTimeout(()=>{this.getKeystore()},500)
+            })  
+          }else{
+            // alert("再次输入的密码不一致")   
+            this.setState({showModal2: true})
+            return
+          }
         }
       }
-    }
-    catch(err) {
-      this.setState({showModal1: false, showSpinner: false})
-    }  
+      catch(err) {
+        this.setState({showModal1: false})
+        return
+      } 
+  }
+
+  async getKeystore() {    
+    var Wallet = require('ethereumjs-wallet')
+    var key = Buffer.from(this.state.sk, 'hex')
+    var wallet = Wallet.fromPrivateKey(key)
+    const keystore =  wallet.toV3String(this.state.pass1).toString()
+    this.setState({keystore: keystore, display1: 'none', display2: 'block', showSpinner: false,showModal1: false}, ()=>{})
   }
       
+  async importKeystore() {
+    if (this.state.addList.length === 5) {
+          this.setState({showModal5: true})
+          return
+    }      
+
+    var Wallet = require('ethereumjs-wallet')
+    var key = Buffer.from(this.state.sk, 'hex')
+    var wallet = Wallet.fromPrivateKey(key)
+    const rAdd = getAddrFromEth(wallet.getAddress().toString('hex'))
+    // this.setState({revAddress: rAdd})
+    for (const i of this.state.addList) {
+      if (rAdd === i) {
+        this.setState({showModal7: true, alreadyIn: true},()=>{})
+        return
+      }
+    }    
+    if(this.state.alreadyIn ===false){
+      const c_addr = this.state.blankAddress
+      const passworder = require('browser-passworder')
+      passworder.encrypt(basicKey.hash, this.state.keystore)
+      .then(function(blob) {      
+        chrome.storage.local.set({[ rAdd + "_keyfile"]: blob}, function() {})
+      })
+
+      chrome.storage.local.set({[c_addr]: rAdd}, function() { })
+      // alert("导入成功Import Succeed")
+      this.setState({showModal6: true})
+    }
+
+  }  
+
   render() {
     return (
       <div>
@@ -89,7 +150,8 @@ class KeytoolsPage extends React.Component {
               </div>
               <div style={{ display: this.state.display2, paddingTop: '40px' }}>
                 <label><FormattedMessage id='save_text' /></label>
-                <textarea style={{resize:'none', color: '#5e6064', fontSize:'12px'}} name="body" rows='16' cols='36' value={this.state.keystore}/>
+                <textarea style={{resize:'none', color: '#5e6064', fontSize:'12px'}} name="body" rows='12' cols='48' value={this.state.keystore}/>
+                <Button variant="outline-light" size="lg" onClick={this.importKeystore} ><FormattedMessage id='import' /> </Button>
               </div>
             </Tab>
             <Tab eventKey="seed2keystore" title="Seed to Keystore" disabled>
@@ -152,6 +214,38 @@ class KeytoolsPage extends React.Component {
               </Button>
             </Modal.Footer>
           </Modal>
+
+          <Modal size="sm" show = {this.state.showModal5} onHide={()=>this.setState({showModal5: false})}>
+            <Modal.Body>
+              <FormattedMessage id='list_is_full' />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="primary" onClick={()=>this.setState({showModal5: false})}>
+                <FormattedMessage id='confirm' />
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          <Modal size="sm" show = {this.state.showModal6} onHide={()=>this.setState({showModal6: false})}>
+            <Modal.Body>
+              <FormattedMessage id='import_success' />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="primary" onClick={()=>this.setState({showModal6: false})}>
+                <FormattedMessage id='confirm' />
+              </Button>
+            </Modal.Footer>
+          </Modal>       
+          <Modal size="sm" show = {this.state.showModal7} onHide={()=>this.setState({showModal7: false})}>
+            <Modal.Body>
+              <FormattedMessage id='already_imported' />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="primary" onClick={()=>this.setState({showModal7: false})}>
+                <FormattedMessage id='confirm' />
+              </Button>
+            </Modal.Footer>
+          </Modal>                
       </div>
     )
   }
