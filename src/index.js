@@ -40,7 +40,7 @@ const chooseLocale = () => {
         case 'zh':
             return CN
         default:
-            return CN
+            return EN
     }
 }
 
