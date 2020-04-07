@@ -1,5 +1,6 @@
 const CN = {
   login: '登录',
+  logout: '退出',
   register: '注册',
   input_pass: '输入密码',
   pass_twice: '重复密码',
@@ -40,7 +41,9 @@ const CN = {
   save_text: 'Keystore已生成，请将文本框中的代码复制保存到一个文本文件',
   balance_not_enough: '账户余额不足，无法完成交易',
   already_imported: '该Keystore已导入',
-  list_is_full: '地址列表已满'
+  list_is_full: '地址列表已满',
+  key_format: '私钥共64个字符，请去掉前缀0x',
+  wrong_address: '地址位数不对'
 
 
 }

@@ -46,6 +46,10 @@ const chooseLocale = () => {
 
 class App extends Component {
 
+  constructor(props) {
+    super(props)
+  }  
+
   async componentDidMount() {
     await chrome.storage.local.get(['userPass'], function(result) {
       if(result.userPass.length >0){
@@ -57,6 +61,7 @@ class App extends Component {
   render(){
     return(
       <Container >
+
         <Switch>
           <Route  path="/login" render={(props) => <LoginPage {...props} isReged={did} /> } />
           <Route  path="/register" component={ RegPage } />           

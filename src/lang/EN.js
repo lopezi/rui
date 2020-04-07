@@ -1,5 +1,6 @@
 const EN = {
   login: 'Login',
+  logout: 'Logout',
   register: 'Register',
   input_pass: 'Password',
   pass_twice: 'Repeat Password',
@@ -40,8 +41,9 @@ const EN = {
   save_text: 'Keystore is generated. Please save the code below to a text file.',
   balance_not_enough: 'Balance is not enough.',
   already_imported: 'This Keystore has already been imported.',
-  list_is_full: 'Address list is full.'
-
+  list_is_full: 'Address list is full.',
+  key_format: 'Private key is 64 digits, please delete 0x prefix.',
+  wrong_address: 'The address is wrong.'
 
 }
 export default EN

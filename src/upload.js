@@ -5,7 +5,6 @@ import { withRouter } from 'react-router-dom'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Header from './header'
-import basicKey from './bk'
 import { getAddrFromEth } from './getAddress.js'
 import {FormattedMessage} from 'react-intl'
 
@@ -19,6 +18,7 @@ class UploadPage extends React.Component {
       fileContents: '',
       addList: [],
       temp_i: '',
+      basicKey: '',
       showModal1: false,   // wrong pass
       showModal2: false,   // import succeeded
       showModal3: false,   // already imported
@@ -84,10 +84,11 @@ class UploadPage extends React.Component {
     // console.log(temp.getAddress().toString('hex'))
     // const c_addr = temp_i
     const c_addr = this.state.temp_i
-    passworder.encrypt(basicKey.hash, this.state.fileContents)
+    chrome.runtime.sendMessage({ cmd: 'GET_BASICKEY' }, response => {this.setState({basicKey: response.basicKey}, ()=>console.log("upload.basicKey: ",this.state.basicKey)) })
+
+    passworder.encrypt(this.state.basicKey, this.state.fileContents)
     .then(function(blob) {      
       chrome.storage.local.set({[ getAddrFromEth(temp.getAddress().toString('hex')) + "_keyfile"]: blob}, function() {})
-      // passworder.decrypt(basicKey.hash, blob)
     })
 
     chrome.storage.local.set({[c_addr]: getAddrFromEth(temp.getAddress().toString('hex'))}, function() {})

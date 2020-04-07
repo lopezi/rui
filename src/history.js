@@ -12,6 +12,7 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import {readonly} from './rnode'
 
 import RIcon from './Icons/R.js'
 
@@ -76,16 +77,11 @@ class History extends React.Component {
 
     var trans 
     var newTrans=[]
-    // const trans = this.state.history
-    // const url = "http://104.197.246.182:40403/api/deploy/"  // mainnet
-    // const url = "http://207.180.230.84:40403/api/deploy/"    // my contabo 30G
-    const url = "http://35.220.140.14:40403/api/deploy/" 
-    // const url = "http://observer-us.services.mainnet.rchain.coop:40403/api/deploy/"
     await chrome.storage.local.get(['History'], function(result) {
       trans = result.History     
       trans.map((i) => {
         if (i['status'] ==="Pending") {
-          fetch(url + i['deployId'], { method:'get',  mode: 'cors' })
+          fetch(readonly[0]+ `/api/deploy/` + i['deployId'], { method:'get',  mode: 'cors' })
           .then((str) => {
                 // console.log("str: ",str)
             // if (str.status === 400) {
