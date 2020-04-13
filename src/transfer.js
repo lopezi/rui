@@ -198,7 +198,6 @@ class Transfer extends React.Component {
                   addrList: [],
                   copied: false,
                   fileContents: null,
-                  basicKey: '',
                   showModal1: false, // password input when checking balance
                   showModal2: false, // password input when transferring
                   showModal3: false, // wrong password when transferring or checking balance
@@ -245,8 +244,6 @@ class Transfer extends React.Component {
     })
   }
 
-
-
   async componentDidMount() { 
     add_5.map( i => {
       return chrome.storage.local.get([i], function(result) {
@@ -280,62 +277,61 @@ class Transfer extends React.Component {
     var passworder = require('browser-passworder')
     const c_key = this.state.revAddress + "_keyfile"
     var tempP
-    chrome.runtime.sendMessage({ cmd: 'GET_BASICKEY' }, response => {this.setState({basicKey: response.basicKey}); return true})
-
-    chrome.storage.local.get([c_key], function(result) {
-      try {
-        passworder.decrypt(this.state.basicKey, result[c_key])
-        .then(function(blob) {
-          this.setState({fileContents:  blob }, () => {
-            try {
-              tempP = Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPrivateKeyString().slice(2) 
-            }
-            catch(err) {
-              // alert("Keystore密码错Wrong Password")
-              this.setState({showModal3: true, showSpinner: false })
-              // console.log("here is #194")
-              return
-            }  
-            this.setState({ sk: tempP }, () => {
+    chrome.runtime.sendMessage({ cmd: 'GET_BASICKEY' }, response => {
+      // this.setState({basicKey: response.basicKey}, ()=>{console.log("response.basicKey: ",response.basicKey)})})
+      chrome.storage.local.get([c_key], function(result) {
+        try {
+          passworder.decrypt(response.basicKey, result[c_key])
+          .then(function(blob) {
+            this.setState({fileContents:  blob }, () => {
               try {
-                // sendDeploy(http, code, this.state.sk).then( (response) => {
-                apiDeploy(code, this.state.sk).then( (response) => {
-                  // console.log("Response: ", response)
-                  try {
-                    if (response.substring(0,8) ==="Success!") {
-                      this.setState({deployId: response.substring(22,164), showModal4: true, showSpinner: false})
-                      this.storeHistory()
-                    }else{
+                tempP = Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPrivateKeyString().slice(2) 
+              }
+              catch(err) {
+                // alert("Keystore密码错Wrong Password")
+                this.setState({showModal3: true, showSpinner: false })
+                return
+              }  
+              this.setState({ sk: tempP }, () => {
+                try {
+                  // sendDeploy(http, code, this.state.sk).then( (response) => {
+
+                  apiDeploy(code, this.state.sk).then( (response) => {
+                    // console.log("Response: ", response)
+                    try {
+                      if (response.substring(0,8) ==="Success!") {
+                        this.setState({deployId: response.substring(22,164), showModal4: true, showSpinner: false})
+                        this.storeHistory()
+                      }else{
+                        // alert("操作失败 The operation failed")
+                        this.setState({showModal6: true, showSpinner: false})
+                        return
+                      }  
+                    }
+                    catch(err) {
                       // alert("操作失败 The operation failed")
                       this.setState({showModal6: true, showSpinner: false})
                       return
                     }  
-                  }
-                  catch(err) {
-                    // alert("操作失败 The operation failed")
-                    this.setState({showModal6: true, showSpinner: false})
-                    return
-                  }  
-                })
-              }
-              catch(err) {
-                // alert("操作失败 The operation failed")
-                this.setState({showModal6: true, showSpinner: false})
-                return
-              }
+                  })
+                }
+                catch(err) {
+                  // alert("操作失败 The operation failed")
+                  this.setState({showModal6: true, showSpinner: false})
+                  return
+                }
+              })
             })
-          })
-        }.bind(this))
-      }
-      catch(err) {
-        // alert("密码输入有误，操作失败")
-        this.setState({showModal7: true})
-        return
-      }
-    }.bind(this))
+          }.bind(this))
+        }
+        catch(err) {
+          // alert("密码输入有误，操作失败")
+          this.setState({showModal7: true})
+          return
+        }
+      }.bind(this))
+    })
   }
-
-
 
   async checkBalance () {
     const req = {
@@ -361,8 +357,6 @@ class Transfer extends React.Component {
       this.setState({showBalanceSpinner: false})
     })
   }
-
-
 
   async transfer() {
     // event.preventDefault()
@@ -421,8 +415,7 @@ class Transfer extends React.Component {
             }
           }
         }`
-        // console.log("code: ", code)
-        this.setState({showModal2: false, showSpinner: true})
+      this.setState({showModal2: false, showSpinner: true})
       await this.handleInputPass(code)
 
   }

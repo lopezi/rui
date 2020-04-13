@@ -63,5 +63,8 @@ typings/
 build/
 bak.*
 *.keystore
+build.pem
+build.zip
+rui.zip
 
 

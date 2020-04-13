@@ -49,7 +49,7 @@ class LoginPage extends React.Component {
         if (res === true){
           Auth.login()
           // basicKey.hash=this.state.pass         
-          chrome.runtime.sendMessage({ cmd: 'SET_BASICKEY', basicKey: this.state.pass }, response => { })
+          chrome.runtime.sendMessage({ cmd: 'SET_BASICKEY', basicKey: this.state.pass })
           this.props.history.push('/transfer')   
         }  else{
           // alert("密码错")
