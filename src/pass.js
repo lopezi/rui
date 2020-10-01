@@ -6,7 +6,6 @@ import bcrypt from 'bcryptjs'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Header from './header'
-import basicKey from './bk'
 import {FormattedMessage} from 'react-intl'
 
 const passworder = require('browser-passworder')
@@ -37,7 +36,7 @@ class PassPage extends React.Component {
       [name]: value
     })
   }
-
+    
   async changeStore() {
     const addr =["address1","address2","address3","address4","address5"]
     for ( const i of addr) {
@@ -76,7 +75,9 @@ class PassPage extends React.Component {
                   var hash = bcrypt.hashSync(this.state.p1, salt)
                   chrome.storage.local.set({'userPass': hash}, function() {})
                   this.changeStore()
-                  basicKey.hash =  this.state.p1
+                  // basicKey.hash =  this.state.p1
+                  chrome.runtime.sendMessage({ cmd: 'SET_BASICKEY', basicKey: this.state.p1 }, response => { })
+
                   // alert("密码修改成功Succeed")
                   this.setState({showModal3: true})
                   this.props.history.push('/transfer')

@@ -10,7 +10,6 @@ import Modal from 'react-bootstrap/Modal'
 import {FormattedMessage} from 'react-intl'
 import Spinner from 'react-bootstrap/Spinner'
 import { getAddrFromEth } from './getAddress.js'
-import basicKey from './bk'
 
 class KeytoolsPage extends React.Component {
 
@@ -24,6 +23,7 @@ class KeytoolsPage extends React.Component {
                   revAddress: "",
                   addList: [],
                   blankAddress: '',
+                  basicKey: '',
                   showModal1: false,  // setup password
                   showModal2: false,  // password inconsistency
                   showModal3: false,  // at least 6 alpphabets
@@ -123,7 +123,9 @@ class KeytoolsPage extends React.Component {
     if(this.state.alreadyIn ===false){
       const c_addr = this.state.blankAddress
       const passworder = require('browser-passworder')
-      passworder.encrypt(basicKey.hash, this.state.keystore)
+      chrome.runtime.sendMessage({ cmd: 'GET_BASICKEY' }, response => {this.setState({basicKey: response.basicKey}) })
+
+      passworder.encrypt(this.state.basicKey, this.state.keystore)
       .then(function(blob) {      
         chrome.storage.local.set({[ rAdd + "_keyfile"]: blob}, function() {})
       })
@@ -144,6 +146,7 @@ class KeytoolsPage extends React.Component {
             <Tab eventKey="key2keystore" title="Key to Keystore">
               <div style={{ display: this.state.display1, paddingTop: '40px'}} >
                 <label><FormattedMessage id='paste_key' /></label>
+                <label><FormattedMessage id='key_format' /></label>
                 <input type="text" name="sk" value={this.state.sk} onChange={this.handleInputChange} className="Rui_input form-control form-control-lg" />
                 <p></p>
                 <Button variant="outline-light" size="lg" onClick={()=>{this.setState({showModal1: true})}} ><FormattedMessage id='confirm' /> </Button>

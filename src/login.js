@@ -7,7 +7,6 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from "react-bootstrap/Button"
 import Modal from 'react-bootstrap/Modal'
-import basicKey from './bk'
 import Auth from './auth'
 import {FormattedMessage} from 'react-intl'
 
@@ -21,7 +20,6 @@ class LoginPage extends React.Component {
                  }
     this.handleInputChange = this.handleInputChange.bind(this)
     this.checkPass = this.checkPass.bind(this)
-    this.getAuth = this.getAuth.bind(this)
   }
 
   async componentDidMount() {
@@ -30,6 +28,9 @@ class LoginPage extends React.Component {
         this.setState({ isReged: true })
       }
     }.bind(this))
+
+    this.renderRedirect()
+
   }
 
   handleInputChange(event) {
@@ -41,17 +42,14 @@ class LoginPage extends React.Component {
     })
   }
 
-  getAuth() {
-    return this.state.authenticated
-  }
-
   async checkPass(event) {
     event.preventDefault();
     await chrome.storage.local.get(['userPass'], function(result) {
       bcrypt.compare(this.state.pass, result.userPass, function(err, res) {
         if (res === true){
           Auth.login()
-          basicKey.hash=this.state.pass
+          // basicKey.hash=this.state.pass         
+          chrome.runtime.sendMessage({ cmd: 'SET_BASICKEY', basicKey: this.state.pass })
           this.props.history.push('/transfer')   
         }  else{
           // alert("密码错")
@@ -59,6 +57,28 @@ class LoginPage extends React.Component {
         }
       }.bind(this)) 
     }.bind(this))
+  }
+
+  renderRedirect () {
+    let jump
+    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
+      if (response.time) {
+        const time = new Date(response.time)
+        // console.log("time.getTime() - Date.now(): ", time.getTime() - Date.now())
+        if ((time.getTime() - Date.now())> 0) {
+          jump = 1
+        }else{
+          jump = 0   
+        }
+      }
+      if (response.time === undefined) {
+        jump = 0  
+      }
+      if (jump ===1) {
+        Auth.login()
+        this.props.history.push('/transfer')
+      }
+    })
   }
 
   render() {

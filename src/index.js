@@ -40,11 +40,15 @@ const chooseLocale = () => {
         case 'zh':
             return CN
         default:
-            return CN
+            return EN
     }
 }
 
 class App extends Component {
+
+  constructor(props) {
+    super(props)
+  }  
 
   async componentDidMount() {
     await chrome.storage.local.get(['userPass'], function(result) {
@@ -57,6 +61,7 @@ class App extends Component {
   render(){
     return(
       <Container >
+
         <Switch>
           <Route  path="/login" render={(props) => <LoginPage {...props} isReged={did} /> } />
           <Route  path="/register" component={ RegPage } />           

@@ -1,3 +1,4 @@
+/*global chrome*/
 import React from 'react'
 import { withRouter} from 'react-router-dom'
 import Row from 'react-bootstrap/Row'
@@ -12,7 +13,9 @@ import ToolIcon from './Icons/Tool.js'
 import MenuIcon from './Icons/Menu.js'
 import ChatIcon from './Icons/Chat.js'
 import HistoryIcon from './Icons/History.js'
+import ExitIcon from './Icons/Exit.js'
 import {FormattedMessage} from 'react-intl'
+import Auth from './auth'
 
 class Header extends React.Component {
 
@@ -26,35 +29,50 @@ class Header extends React.Component {
     this.toAbout = this.toAbout.bind(this)
     this.toHistory = this.toHistory.bind(this)
     this.toKeytools = this.toKeytools.bind(this)
+    this.toLogout = this.toLogout.bind(this)
+  }
+
+  async componentDidMount() { 
+
+    //reset the timer
+    chrome.runtime.sendMessage({ cmd: 'START_TIMER', when: Date.now()+ 30*60 * 1000 })
+    // console.log("reset timer")
   }
 
   toTransfer(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/transfer')
   }  
   toUpload(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/upload')
   }
   toPass(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/pass')
   }    
   toAddress(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/address')
   }  
   toAbout(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/about')
   } 
   toHistory(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/history')
   } 
   toKeytools(event) {
-    event.preventDefault();
+    event.preventDefault()
     this.props.history.push('/keytools')
+  } 
+  toLogout(event) {
+    event.preventDefault()
+    Auth.logout()
+    chrome.runtime.sendMessage({ cmd: 'SET_BASICKEY', basicKey: '' }, response => { })
+    chrome.runtime.sendMessage({ cmd: 'START_TIMER', when: Date.now()- 30*60 * 1000 })
+    this.props.history.push('/login')
   } 
 
   render() {
@@ -73,6 +91,7 @@ class Header extends React.Component {
               <Dropdown.Item onClick={this.toAddress}><AddressIcon width="20px" height="20px" />&nbsp;<FormattedMessage id='address_man' /></Dropdown.Item>
               <Dropdown.Item onClick={this.toKeytools}><ToolIcon width="20px" height="20px" />&nbsp;<FormattedMessage id='key_tools' /></Dropdown.Item>
               <Dropdown.Item onClick={this.toAbout}><ChatIcon width="20px" height="20px" />&nbsp;<FormattedMessage id='about' /></Dropdown.Item>
+              <Dropdown.Item onClick={this.toLogout}><ExitIcon width="20px" height="20px" />&nbsp;<FormattedMessage id='logout' /></Dropdown.Item>
             </DropdownButton>
           </Col>
         </Row>      

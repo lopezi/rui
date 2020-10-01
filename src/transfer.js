@@ -4,7 +4,6 @@ import React from 'react'
 import { withRouter } from 'react-router-dom'
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import grpcWeb from 'grpc-web'
-import basicKey from './bk'
 import DropdownButton from "react-bootstrap/DropdownButton"
 import Dropdown from 'react-bootstrap/Dropdown'
 import Button from 'react-bootstrap/Button'
@@ -17,6 +16,7 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import {FormattedMessage} from 'react-intl'
 import Spinner from 'react-bootstrap/Spinner'
+import { readonly, validator } from './rnode'
 
 const { rnodeDeploy, rnodePropose, signDeploy, verifyDeploy } = require('@tgrospic/rnode-grpc-js')
 
@@ -27,9 +27,6 @@ require('../rnode-grpc-gen/js/DeployServiceV1_pb')
 require('../rnode-grpc-gen/js/ProposeServiceV1_pb')
 
 const add_5 = ["address1","address2","address3","address4","address5"]
-// const http = `https://testnet-2.grpc.rchain.isotypic.com`
-const http = `http://proxy.wenode.io:44401`
-// const http = `http://173.249.48.71:44401`
 
 const rnode = (rnodeUrl) => {
   const options = { grpcLib: grpcWeb, host: rnodeUrl, protoSchema }
@@ -44,47 +41,144 @@ const rnode = (rnodeUrl) => {
   return { DoDeploy: doDeploy, propose, listenForDataAtName, getBlocks, getBlock}
 }
 
-const sendDeploy = async (rnodeUrl, code, privateKey) => {
-  const { DoDeploy, propose, getBlock } = rnode(rnodeUrl)
-  const url = "http://35.220.140.14:40403/api/last-finalized-block"
-  const num = await fetch(url, { method:'get' })
-    .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+// const sendDeploy = async (rnodeUrl, code, privateKey) => {
+//   const { DoDeploy, propose, getBlock } = rnode(rnodeUrl)
+//   // const url = "http://35.220.140.14:40403/api/last-finalized-block"
 
+//     try {
+//       const num = await fetch(readonly[0] + `/api/last-finalized-block`, { method:'get' })
+//         .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+//     } catch(err) {
+//       try {
+//         const num = await fetch(readonly[1] + `/api/last-finalized-block`, { method:'get' })
+//           .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+//       } catch(err) {
+//         const num = await fetch(readonly[2] + `/api/last-finalized-block`, { method:'get' })
+//           .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+//       }
+//     }
+
+//   // const num = await fetch(readonly[0] + `/api/last-finalized-block`, { method:'get' })
+//   //   .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+
+//   const deployData = {
+//     term: code, phlolimit: 300000, phloprice: 1,
+//     validafterblocknumber: num+1
+//   }
+//   const deploy = signDeploy(privateKey, deployData)
+//   // const isValidDeploy = verifyDeploy(deploy)
+//   try {
+//     const { result } = await DoDeploy(deploy)
+//     // console.log('DoDeploy: ', result)
+//     return result
+//   } catch (error) { return error }
+
+//   try {
+//     const { result } = await DoDeploy(deploy)
+//     // console.log('DoDeploy: ', result)
+//     return result
+//   } catch (error) { return error }
+
+
+
+//   // try {
+//   //   const resPropose = await propose()
+//   //   // console.log('PROPOSE', resPropose)
+//   // } catch (error) { console.log("Propose Error: ",error) }
+
+//   // const data = await getDataForDeploy(rnodeUrl, deploy.sig)
+//   // console.log('data: ', data)
+//   // return data
+// }
+
+const num = async ()=> {
+  let y
+  try {
+    y = await fetch(readonly[0] + `/api/last-finalized-block`, { method:'get' })
+      .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+  } catch(err) {
+    try {
+      y = await fetch(readonly[1] + `/api/last-finalized-block`, { method:'get' })
+        .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+    } catch(err) {
+      y = await fetch(readonly[2] + `/api/last-finalized-block`, { method:'get' })
+        .then((str) => str.json()).then( x => x.blockInfo.blockNumber )
+    }
+  }
+  return y
+}
+
+
+const apiDeploy = async ( code, privateKey) => {
+  
+  // console.log("num + 1 :", await num()+1)
   const deployData = {
     term: code, phlolimit: 300000, phloprice: 1,
-    validafterblocknumber: num+1
+    validafterblocknumber: await num()+1
   }
   const deploy = signDeploy(privateKey, deployData)
   // const isValidDeploy = verifyDeploy(deploy)
+  const da = {
+    data: {
+      term: deploy.term,
+      timestamp: deploy.timestamp,
+      phloPrice: deploy.phloprice,
+      phloLimit: deploy.phlolimit,
+      validAfterBlockNumber: deploy.validafterblocknumber
+    },
+    sigAlgorithm: deploy.sigalgorithm,
+    signature: bytesToHex(deploy.sig),
+    deployer: bytesToHex(deploy.deployer)
+  }
+
+  const req = {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(da)
+  }
+
   try {
-    const { result } = await DoDeploy(deploy)
-    // console.log('DoDeploy: ', result)
-    return result
-  } catch (error) { return error }
+    const b = await fetch(validator[0]+`/api/deploy`, req).then(r => r.json()).then(x =>  x)
+    return b
+  } catch(err) {
+    try {
+      const b = await fetch(validator[1]+`/api/deploy`, req).then(r => r.json()).then(x =>  x)
+      return b
+    } catch(err) {
+      const b = await fetch(validator[2]+`/api/deploy`, req).then(r => r.json()).then(x =>  x)
+      return b
+    }
+  }
 
-
-
-  // try {
-  //   const resPropose = await propose()
-  //   // console.log('PROPOSE', resPropose)
-  // } catch (error) { console.log("Propose Error: ",error) }
-
-  // const data = await getDataForDeploy(rnodeUrl, deploy.sig)
-  // console.log('data: ', data)
-  // return data
 }
 
-// const getDataForDeploy = async (rnodeUrl, deployId) => {
-//   const { listenForDataAtName } = rnode(rnodeUrl)
-//   const { payload: { blockinfoList }  } = await listenForDataAtName({
-//     depth: -1,
-//     name: { unforgeablesList: [{gDeployIdBody: {sig: deployId}}] },
-//   })
-// console.log("blockinfoList.length: ", blockinfoList.length)
-//   return blockinfoList.length &&
-//     blockinfoList[0].postblockdataList[0].exprsList[0].gInt ||
-//     blockinfoList[0].postblockdataList[0].exprsList[0].gString
-// }
+
+const bytesToHex = (bytes) => {
+  const hex = []
+  for (let i = 0; i < bytes.length; i++) {
+    hex.push((bytes[i] >>> 4).toString(16));
+    hex.push((bytes[i] & 0xf).toString(16));
+  }
+  return hex.join('')
+}
+
+const fetchBalance = async (req) => {
+  let b
+  try {
+    b = await fetch(readonly[0]+`/api/explore-deploy`, req).then(r => r.json()).then(x => x.expr[0].ExprInt.data)
+  } catch(err) {
+    try {
+      b = await fetch(readonly[1]+`/api/explore-deploy`, req).then(r => r.json()).then(x => x.expr[0].ExprInt.data)
+    } catch(err) {
+      b = await fetch(readonly[2]+`/api/explore-deploy`, req).then(r => r.json()).then(x => x.expr[0].ExprInt.data)
+    }
+  }
+  return b
+}
+
 
 class Transfer extends React.Component {
 
@@ -113,6 +207,7 @@ class Transfer extends React.Component {
                   showModal7: false, // cannot get keystore from storage
                   showModal8: false, // only alphabets allowed
                   showModal9: false, // balance is not enough
+                  showModal10: false, // address is wrong
                   showSpinner: false,
                   showBalanceSpinner : true,
                   deployId: null 
@@ -149,8 +244,6 @@ class Transfer extends React.Component {
     })
   }
 
-
-
   async componentDidMount() { 
     add_5.map( i => {
       return chrome.storage.local.get([i], function(result) {
@@ -179,69 +272,68 @@ class Transfer extends React.Component {
     }.bind(this))
   }  
 
-  async handleInputPass(item, http, code){ 
+  async handleInputPass(code){ 
     var Wallet = require('ethereumjs-wallet')
     var passworder = require('browser-passworder')
     const c_key = this.state.revAddress + "_keyfile"
     var tempP
-    chrome.storage.local.get([c_key], function(result) {
-      try {
-        passworder.decrypt(basicKey.hash, result[c_key])
-        .then(function(blob) {
-          this.setState({fileContents:  blob }, () => {
-            try {
-              tempP = Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPrivateKeyString().slice(2) 
-            }
-            catch(err) {
-              // alert("Keystore密码错Wrong Password")
-              this.setState({showModal3: true, showSpinner: false })
-              // console.log("here is #194")
-              return
-            }  
-            this.setState({ sk: tempP }, () => {
+    chrome.runtime.sendMessage({ cmd: 'GET_BASICKEY' }, response => {
+      // this.setState({basicKey: response.basicKey}, ()=>{console.log("response.basicKey: ",response.basicKey)})})
+      chrome.storage.local.get([c_key], function(result) {
+        try {
+          passworder.decrypt(response.basicKey, result[c_key])
+          .then(function(blob) {
+            this.setState({fileContents:  blob }, () => {
               try {
-                sendDeploy(http, code, this.state.sk).then( (response) => {
-                  // console.log("Response: ", response)
-                  try {
-                    if (response.substring(0,8) ==="Success!") {
-                      this.setState({deployId: response.substring(22,164), showModal4: true, showSpinner: false})
-                      this.storeHistory()
-                    }else{
+                tempP = Wallet.fromV3(this.state.fileContents, this.state.PKpass, true).getPrivateKeyString().slice(2) 
+              }
+              catch(err) {
+                // alert("Keystore密码错Wrong Password")
+                this.setState({showModal3: true, showSpinner: false })
+                return
+              }  
+              this.setState({ sk: tempP }, () => {
+                try {
+                  // sendDeploy(http, code, this.state.sk).then( (response) => {
+
+                  apiDeploy(code, this.state.sk).then( (response) => {
+                    // console.log("Response: ", response)
+                    try {
+                      if (response.substring(0,8) ==="Success!") {
+                        this.setState({deployId: response.substring(22,164), showModal4: true, showSpinner: false})
+                        this.storeHistory()
+                      }else{
+                        // alert("操作失败 The operation failed")
+                        this.setState({showModal6: true, showSpinner: false})
+                        return
+                      }  
+                    }
+                    catch(err) {
                       // alert("操作失败 The operation failed")
                       this.setState({showModal6: true, showSpinner: false})
                       return
                     }  
-                  }
-                  catch(err) {
-                    // alert("操作失败 The operation failed")
-                    this.setState({showModal6: true, showSpinner: false})
-                    return
-                  }  
-                })
-              }
-              catch(err) {
-                // alert("操作失败 The operation failed")
-                this.setState({showModal6: true, showSpinner: false})
-                return
-              }
+                  })
+                }
+                catch(err) {
+                  // alert("操作失败 The operation failed")
+                  this.setState({showModal6: true, showSpinner: false})
+                  return
+                }
+              })
             })
-          })
-        }.bind(this))
-      }
-      catch(err) {
-        // alert("密码输入有误，操作失败")
-        this.setState({showModal7: true})
-        return
-      }
-    }.bind(this))
+          }.bind(this))
+        }
+        catch(err) {
+          // alert("密码输入有误，操作失败")
+          this.setState({showModal7: true})
+          return
+        }
+      }.bind(this))
+    })
   }
 
   async checkBalance () {
-    // const url = 'http://104.197.246.182:40403/api/explore-deploy'  // mainnet
-    // const url = 'http://207.180.230.84:40403/api/explore-deploy'  // my contabo 30G
-    // const url = 'http://34.66.209.49:40403/api/explore-deploy'  //testnet
-    const url = "http://35.220.140.14:40403/api/explore-deploy" 
-
     const req = {
       method: 'POST',
       body: `
@@ -260,8 +352,8 @@ class Transfer extends React.Component {
             `
     }
 
-    const b = await fetch(url, req).then(r => r.json()).then(x => x.expr[0].ExprInt.data)
-    this.setState({balance: b}, ()=>{ 
+    const wait = await fetchBalance(req)
+    this.setState({balance: wait}, ()=>{ 
       this.setState({showBalanceSpinner: false})
     })
   }
@@ -281,6 +373,11 @@ class Transfer extends React.Component {
     if (amt <=0) {
         this.setState({showModal9: true, showModal2: false})
         return
+    }
+
+    if (this.state.toAddr.length !== 53 && this.state.toAddr.length !== 54){
+      this.setState({showModal10: true, showModal2: false})
+      return
     }
 
       const code =`
@@ -318,9 +415,8 @@ class Transfer extends React.Component {
             }
           }
         }`
-        // console.log("code: ", code)
-        this.setState({showModal2: false, showSpinner: true})
-      await this.handleInputPass("transfer", http, code)
+      this.setState({showModal2: false, showSpinner: true})
+      await this.handleInputPass(code)
 
   }
 
@@ -489,7 +585,17 @@ class Transfer extends React.Component {
               <FormattedMessage id='confirm' />
             </Button>
           </Modal.Footer>
-        </Modal>     
+        </Modal>  
+        <Modal size="sm" show = {this.state.showModal10} onHide={()=>this.setState({showModal10: false})}>
+          <Modal.Body>
+            <FormattedMessage id='wrong_address' />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={()=>this.setState({showModal10: false})}>
+              <FormattedMessage id='confirm' />
+            </Button>
+          </Modal.Footer>
+        </Modal>    
       </div>
     )
   }

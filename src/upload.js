@@ -5,7 +5,6 @@ import { withRouter } from 'react-router-dom'
 import Button from 'react-bootstrap/Button'
 import Modal from 'react-bootstrap/Modal'
 import Header from './header'
-import basicKey from './bk'
 import { getAddrFromEth } from './getAddress.js'
 import {FormattedMessage} from 'react-intl'
 
@@ -43,7 +42,6 @@ class UploadPage extends React.Component {
         }
       }.bind(this))
     }
-    // console.log("tempAdd: ",tempAdd)
     this.setState({addList: tempAdd})
   }
 
@@ -56,7 +54,7 @@ class UploadPage extends React.Component {
     })
   }
 
-  upload(event) {
+  async upload(event) {
     event.preventDefault()
     const Wallet = require('ethereumjs-wallet')
     const passworder = require('browser-passworder')
@@ -84,10 +82,11 @@ class UploadPage extends React.Component {
     // console.log(temp.getAddress().toString('hex'))
     // const c_addr = temp_i
     const c_addr = this.state.temp_i
-    passworder.encrypt(basicKey.hash, this.state.fileContents)
-    .then(function(blob) {      
-      chrome.storage.local.set({[ getAddrFromEth(temp.getAddress().toString('hex')) + "_keyfile"]: blob}, function() {})
-      // passworder.decrypt(basicKey.hash, blob)
+    await chrome.runtime.sendMessage({ cmd: 'GET_BASICKEY' }, response => { 
+      passworder.encrypt(response.basicKey, this.state.fileContents)
+      .then(function(blob) {      
+        chrome.storage.local.set({[ getAddrFromEth(temp.getAddress().toString('hex')) + "_keyfile"]: blob}, function() {})
+      })
     })
 
     chrome.storage.local.set({[c_addr]: getAddrFromEth(temp.getAddress().toString('hex'))}, function() {})
